@@ -267,27 +267,26 @@ normalize_path(const char *orig)
 }
 
 void
-mentries_recurse(const char *opath, struct metaentry **mhead)
+mentries_recurse(const char *path, struct metaentry **mhead)
 {
 	struct stat sbuf;
 	struct metaentry *mentry;
 	char tpath[PATH_MAX];
 	DIR *dir;
 	struct dirent *dent;
-	char *path = normalize_path(opath);
 
 	if (!path)
 		return;
 
 	if (lstat(path, &sbuf)) {
 		printf("Failed to stat %s\n", path);
-		goto out;
+		return;
 	}
 
 	mentry = mentry_create(path);
 	if (!mentry) {
 		printf("Failed to get metadata for %s\n", path);
-		goto out;
+		return;
 	}
 
 	mentry_insert(mentry, mhead);
@@ -309,8 +308,13 @@ mentries_recurse(const char *opath, struct metaentry **mhead)
 
 		closedir(dir);
 	}
+}
 
-out:
+void
+mentries_recurse_path(const char *opath, struct metaentry **mhead)
+{
+	char *path = normalize_path(opath);
+	mentries_recurse(path, mhead);
 	free(path);
 }
 
@@ -789,9 +793,9 @@ main(int argc, char **argv, char **envp)
 
 		if (optind < argc)
 			while (optind < argc)
-				mentries_recurse(argv[optind++], &mhead);
+				mentries_recurse_path(argv[optind++], &mhead);
 		else
-			mentries_recurse(".", &mhead);
+			mentries_recurse_path(".", &mhead);
 		if (!mhead) {
 			fprintf(stderr, "Failed to load metadata from fs\n");
 			exit(EXIT_FAILURE);
@@ -801,9 +805,9 @@ main(int argc, char **argv, char **envp)
 	case ACTION_SAVE:
 		if (optind < argc)
 			while (optind < argc)
-				mentries_recurse(argv[optind++], &mhead);
+				mentries_recurse_path(argv[optind++], &mhead);
 		else
-			mentries_recurse(".", &mhead);
+			mentries_recurse_path(".", &mhead);
 		if (!mhead) {
 			fprintf(stderr, "Failed to load metadata from fs\n");
 			exit(EXIT_FAILURE);
@@ -819,9 +823,9 @@ main(int argc, char **argv, char **envp)
 
 		if (optind < argc)
 			while (optind < argc)
-				mentries_recurse(argv[optind++], &mhead);
+				mentries_recurse_path(argv[optind++], &mhead);
 		else
-			mentries_recurse(".", &mhead);
+			mentries_recurse_path(".", &mhead);
 		if (!mhead) {
 			fprintf(stderr, "Failed to load metadata from fs\n");
 			exit(EXIT_FAILURE);

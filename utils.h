@@ -1,3 +1,12 @@
+#include <stdint.h>
+
+extern int verbosity;
+#define MSG_NORMAL    0
+#define MSG_DEBUG     1
+#define MSG_QUIET    -1
+#define MSG_CRITICAL -2
+int msg(int level, const char *fmt, ...);
+
 void *xmalloc(size_t size);
 char *xstrdup(const char *s);
 void binary_print(const char *s, ssize_t len);

@@ -3,9 +3,26 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 #include "utils.h"
-#include "metastore.h"
+
+int verbosity = 0;
+
+int
+msg(int level, const char *fmt, ...)
+{
+	int ret;
+	va_list ap;
+
+	if (level > verbosity)
+		return 0;
+
+	va_start(ap, fmt);
+	ret = vfprintf(stderr, fmt, ap);
+	va_end(ap);
+	return ret;
+}
 
 void *
 xmalloc(size_t size)

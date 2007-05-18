@@ -5,7 +5,7 @@ INCLUDES =
 COMPILE  = $(CC) $(INCLUDES) $(CFLAGS)
 LINK     = $(CC) $(CFLAGS) $(LDFLAGS)
 
-objects = utils.o metastore.o
+objects = utils.o metastore.o metaentry.o
 
 %.o: %.c
 	$(COMPILE) -o $@ -c $<

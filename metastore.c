@@ -300,7 +300,7 @@ mentries_recurse(const char *opath, struct metaentry **mhead)
 		}
 
 		while ((dent = readdir(dir))) {
-			if (!strcmp(dent->d_name, ".") || !strcmp(dent->d_name, ".."))
+			if (!strcmp(dent->d_name, ".") || !strcmp(dent->d_name, "..") || !strcmp(dent->d_name, ".git"))
 				continue;
 			snprintf(tpath, PATH_MAX, "%s/%s", path, dent->d_name);
 			tpath[PATH_MAX - 1] = '\0';

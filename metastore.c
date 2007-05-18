@@ -530,22 +530,25 @@ compare_print(struct metaentry *left, struct metaentry *right, int cmp)
 		return;
 	}
 
-	if (cmp != 0) {
-		printf("Path %s: ", left->path);
-		if (cmp & DIFF_OWNER)
-			printf("owner ");
-		if (cmp & DIFF_GROUP)
-			printf("group ");
-		if (cmp & DIFF_MODE)
-			printf("mode ");
-		if (cmp & DIFF_TYPE)
-			printf("type ");
-		if (cmp & DIFF_MTIME)
-			printf("mtime ");
-		if (cmp & DIFF_XATTR)
-			printf("xattr ");
-		printf("\n");
+	if (cmp == DIFF_NONE) {
+		msg(MSG_DEBUG, "Path %s: no difference\n", left->path);
+		return;
 	}
+
+	printf("Path %s: ", left->path);
+	if (cmp & DIFF_OWNER)
+		printf("owner ");
+	if (cmp & DIFF_GROUP)
+		printf("group ");
+	if (cmp & DIFF_MODE)
+		printf("mode ");
+	if (cmp & DIFF_TYPE)
+		printf("type ");
+	if (cmp & DIFF_MTIME)
+		printf("mtime ");
+	if (cmp & DIFF_XATTR)
+		printf("xattr ");
+	printf("\n");
 }
 
 void

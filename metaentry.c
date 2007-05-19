@@ -352,7 +352,8 @@ mentries_tofile(const struct metaentry *mlist, const char *path)
 
 	to = fopen(path, "w");
 	if (!to) {
-		perror("fopen");
+		msg(MSG_CRITICAL, "Failed to open %s: %s\n",
+		    path, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
@@ -392,12 +393,14 @@ mentries_fromfile(struct metaentry **mlist, const char *path)
 
 	fd = open(path, O_RDONLY);
 	if (fd < 0) {
-		perror("open");
+		msg(MSG_CRITICAL, "Failed to open %s: %s\n",
+		    path, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
 	if (fstat(fd, &sbuf)) {
-		perror("fstat");
+		msg(MSG_CRITICAL, "Failed to stat %s: %s\n",
+		    path, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 

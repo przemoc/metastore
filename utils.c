@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "utils.h"
 
@@ -105,7 +106,8 @@ void
 xfwrite(const void *ptr, size_t size, FILE *stream)
 {
 	if (fwrite(ptr, size, 1, stream) != 1) {
-		perror("fwrite");
+		msg(MSG_CRITICAL, "Failed to write to file: %s\n",
+		    strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 }

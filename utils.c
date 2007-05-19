@@ -19,7 +19,12 @@ msg(int level, const char *fmt, ...)
 		return 0;
 
 	va_start(ap, fmt);
-	ret = vfprintf(stderr, fmt, ap);
+
+	if (level < MSG_QUIET)
+		ret = vfprintf(stderr, fmt, ap);
+	else
+		ret = vfprintf(stdout, fmt, ap);
+
 	va_end(ap);
 	return ret;
 }
@@ -29,7 +34,7 @@ xmalloc(size_t size)
 {
         void *result = malloc(size);
         if (!result) {
-                fprintf(stderr, "Failed to malloc %zi bytes\n", size);
+                msg(MSG_CRITICAL, "Failed to malloc %zi bytes\n", size);
                 exit(EXIT_FAILURE);
         }
         return result;
@@ -40,7 +45,7 @@ xstrdup(const char *s)
 {
 	char *result = strdup(s);
 	if (!result) {
-		fprintf(stderr, "Failed to strdup %zi bytes\n", strlen(s));
+		msg(MSG_CRITICAL, "Failed to strdup %zi bytes\n", strlen(s));
 		exit(EXIT_FAILURE);
 	}
 	return result;
@@ -53,9 +58,9 @@ binary_print(const char *s, ssize_t len)
 
 	for (i = 0; i < len; i++) {
 		if (isprint(s[i]))
-			printf("%c", s[i]);
+			msg(MSG_DEBUG, "%c", s[i]);
 		else
-			printf("0x%02X", (int)s[i]);
+			msg(MSG_DEBUG, "0x%02X", (int)s[i]);
 	}
 }
 
@@ -98,7 +103,7 @@ read_int(char **from, size_t len, const char *max)
 	int i;
 
 	if (*from + len > max) {
-		fprintf(stderr, "Attempt to read beyond end of file, corrupt file?\n");
+		msg(MSG_CRITICAL, "Attempt to read beyond end of file, corrupt file?\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -114,7 +119,7 @@ read_binary_string(char **from, size_t len, const char *max)
 	char *result;
 
 	if (*from + len > max) {
-		fprintf(stderr, "Attempt to read beyond end of file, corrupt file?\n");
+		msg(MSG_CRITICAL, "Attempt to read beyond end of file, corrupt file?\n");
 		exit(EXIT_FAILURE);
 	}
 

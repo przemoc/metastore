@@ -19,6 +19,7 @@
 #include "metaentry.h"
 #include "utils.h"
 
+#if 0
 static void
 mentry_free(struct metaentry *m)
 {
@@ -42,6 +43,7 @@ mentry_free(struct metaentry *m)
 
 	free(m);
 }
+#endif
 
 static struct metaentry *
 mentry_alloc()
@@ -86,33 +88,34 @@ mentry_insert(struct metaentry *mentry, struct metaentry **mhead)
 	prev->next = mentry;
 }
 
+#ifdef DEBUG
 static void
 mentry_print(const struct metaentry *mentry)
 {
 	int i;
 
 	if (!mentry || !mentry->path) {
-		fprintf(stderr, "Incorrect meta entry passed to printmetaentry\n");
+		msg(MSG_DEBUG, "Incorrect meta entry passed to printmetaentry\n");
 		return;
 	}
 
-	printf("===========================\n");
-	printf("Dump of metaentry %p\n", mentry);
-	printf("===========================\n");
+	msg(MSG_DEBUG, "===========================\n");
+	msg(MSG_DEBUG, "Dump of metaentry %p\n", mentry);
+	msg(MSG_DEBUG, "===========================\n");
 
-	printf("path\t\t: %s\n", mentry->path);
-	printf("owner\t\t: %s\n", mentry->owner);
-	printf("group\t\t: %s\n", mentry->group);
-	printf("mtime\t\t: %ld\n", (unsigned long)mentry->mtime);
-	printf("mtimensec\t: %ld\n", (unsigned long)mentry->mtimensec);
-	printf("mode\t\t: %ld\n", (unsigned long)mentry->mode);
+	msg(MSG_DEBUG, "path\t\t: %s\n", mentry->path);
+	msg(MSG_DEBUG, "owner\t\t: %s\n", mentry->owner);
+	msg(MSG_DEBUG, "group\t\t: %s\n", mentry->group);
+	msg(MSG_DEBUG, "mtime\t\t: %ld\n", (unsigned long)mentry->mtime);
+	msg(MSG_DEBUG, "mtimensec\t: %ld\n", (unsigned long)mentry->mtimensec);
+	msg(MSG_DEBUG, "mode\t\t: %ld\n", (unsigned long)mentry->mode);
 	for (i = 0; i < mentry->xattrs; i++) {
-		printf("xattr[%i]\t: %s=\"", i, mentry->xattr_names[i]);
+		msg(MSG_DEBUG, "xattr[%i]\t: %s=\"", i, mentry->xattr_names[i]);
 		binary_print(mentry->xattr_values[i], mentry->xattr_lvalues[i]);
-		printf("\"\n");
+		msg(MSG_DEBUG, "\"\n");
 	}
 
-	printf("===========================\n\n");
+	msg(MSG_DEBUG, "===========================\n\n");
 }
 
 static void
@@ -126,8 +129,9 @@ mentries_print(const struct metaentry *mhead)
 		mentry_print(mentry);
 	}
 
-	printf("%i entries in total\n", i);
+	msg(MSG_DEBUG, "%i entries in total\n", i);
 }
+#endif
 
 static struct metaentry *
 mentry_create(const char *path)
@@ -141,19 +145,19 @@ mentry_create(const char *path)
 	struct metaentry *mentry;
 
 	if (lstat(path, &sbuf)) {
-		perror("lstat");
+		msg(MSG_ERROR, "lstat failed for %s: %s\n", path, strerror(errno));
 		return NULL;
 	}
 
 	pbuf = getpwuid(sbuf.st_uid);
 	if (!pbuf) {
-		perror("getpwuid");
+		msg(MSG_ERROR, "getpwuid failed for %i: %s\n", (int)sbuf.st_uid, strerror(errno));
 		return NULL;
 	}
 
 	gbuf = getgrgid(sbuf.st_gid);
 	if (!gbuf) {
-		perror("getgrgid");
+		msg(MSG_ERROR, "getgrgid failed for %i: %s\n", (int)sbuf.st_gid, strerror(errno));
 		return NULL;
 	}
 
@@ -171,14 +175,14 @@ mentry_create(const char *path)
 	
 	lsize = listxattr(path, NULL, 0);
 	if (lsize < 0) {
-		perror("listxattr");
+		msg(MSG_ERROR, "listxattr failed for %s: %s\n", path, strerror(errno));
 		return NULL;
 	}
 
 	list = xmalloc(lsize);
 	lsize = listxattr(path, list, lsize);
 	if (lsize < 0) {
-		perror("listxattr");
+		msg(MSG_ERROR, "listxattr failed for %s: %s\n", path, strerror(errno));
 		return NULL;
 	}
 
@@ -205,7 +209,7 @@ mentry_create(const char *path)
 		mentry->xattr_names[i] = xstrdup(attr);
 		vsize = getxattr(path, attr, NULL, 0);
 		if (vsize < 0) {
-			perror("getxattr");
+			msg(MSG_ERROR, "getxattr failed for %s: %s\n", path, strerror(errno));
 			return NULL;
 		}
 
@@ -214,7 +218,7 @@ mentry_create(const char *path)
 
 		vsize = getxattr(path, attr, mentry->xattr_values[i], vsize);
 		if (vsize < 0) {
-			perror("getxattr");
+			msg(MSG_ERROR, "getxattr failed for %s: %s\n", path, strerror(errno));
 			return NULL;
 		}
 		i++;
@@ -260,22 +264,20 @@ mentries_recurse(const char *path, struct metaentry **mhead)
 		return;
 
 	if (lstat(path, &sbuf)) {
-		printf("Failed to stat %s\n", path);
+		msg(MSG_ERROR, "lstat failed for %s: %s\n", path, strerror(errno));
 		return;
 	}
 
 	mentry = mentry_create(path);
-	if (!mentry) {
-		printf("Failed to get metadata for %s\n", path);
+	if (!mentry)
 		return;
-	}
 
 	mentry_insert(mentry, mhead);
 
 	if (S_ISDIR(sbuf.st_mode)) {
 		dir = opendir(path);
 		if (!dir) {
-			printf("Failed to open dir %s\n", path);
+			msg(MSG_ERROR, "opendir failed for %s: %s\n", path, strerror(errno));
 			return;
 		}
 
@@ -356,33 +358,33 @@ mentries_fromfile(struct metaentry **mhead, const char *path)
 	}
 
 	if (sbuf.st_size < (SIGNATURELEN + VERSIONLEN)) {
-		fprintf(stderr, "Invalid size for file %s\n", path);
+		msg(MSG_CRITICAL, "File %s has an invalid size\n", path);
 		exit(EXIT_FAILURE);
 	}
 
 	mmapstart = mmap(NULL, (size_t)sbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
 	if (mmapstart == MAP_FAILED) {
-		perror("mmap");
+		msg(MSG_CRITICAL, "Unable to mmap %s: %s\n", path, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 	ptr = mmapstart;
 	max = mmapstart + sbuf.st_size;
 
 	if (strncmp(ptr, SIGNATURE, SIGNATURELEN)) {
-		printf("Invalid signature for file %s\n", path);
+		msg(MSG_CRITICAL, "Invalid signature for file %s\n", path);
 		goto out;
 	}
 	ptr += SIGNATURELEN;
 
 	if (strncmp(ptr, VERSION, VERSIONLEN)) {
-		printf("Invalid version for file %s\n", path);
+		msg(MSG_CRITICAL, "Invalid version of file %s\n", path);
 		goto out;
 	}
 	ptr += VERSIONLEN;
 
 	while (ptr < mmapstart + sbuf.st_size) {
 		if (*ptr == '\0') {
-			fprintf(stderr, "Invalid characters in file %s\n", path);
+			msg(MSG_CRITICAL, "Invalid characters in file %s\n", path);
 			goto out;
 		}
 
@@ -471,7 +473,7 @@ mentry_compare(struct metaentry *left, struct metaentry *right)
 	int retval = DIFF_NONE;
 
 	if (!left || !right) {
-		fprintf(stderr, "mentry_compare called with empty arguments\n");
+		msg(MSG_ERROR, "%s called with empty list\n", __FUNCTION__);
 		return -1;
 	}
 
@@ -511,7 +513,7 @@ mentries_compare(struct metaentry *mheadleft,
 	int cmp;
 
 	if (!mheadleft || !mheadright) {
-		fprintf(stderr, "mentries_compare called with empty list\n");
+		msg(MSG_ERROR, "%s called with empty list\n", __FUNCTION__);
 		return;
 	}
 

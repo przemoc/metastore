@@ -21,8 +21,8 @@
 /* For uint64_t */
 #include <stdint.h>
 
-/* Controls the verbosity level for msg() */
-extern int verbosity;
+/* Adjusts the verbosity level for msg() */
+void adjust_verbosity(int adj);
 
 /* Verbosity levels using stdout */
 #define MSG_NORMAL    0

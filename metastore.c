@@ -249,10 +249,10 @@ main(int argc, char **argv, char **envp)
 		switch (c) {
 		case 0:
 			if (!strcmp("verbose", long_options[option_index].name)) {
-				verbosity++;
+				adjust_verbosity(1);
 			} else if (!strcmp("quiet",
 					   long_options[option_index].name)) {
-				verbosity--;
+				adjust_verbosity(-1);
 			} else if (!strcmp("mtime",
 					   long_options[option_index].name)) {
 				do_mtime = 1;
@@ -278,10 +278,10 @@ main(int argc, char **argv, char **envp)
 			i++;
 			break;
 		case 'v':
-			verbosity++;
+			adjust_verbosity(1);
 			break;
 		case 'q':
-			verbosity--;
+			adjust_verbosity(-1);
 			break;
 		case 'm':
 			do_mtime = 1;

@@ -28,7 +28,14 @@
 #include "utils.h"
 
 /* Controls the verbosity level for msg() */
-int verbosity = 0;
+static int verbosity = 0;
+
+/* Adjusts the verbosity level for msg() */
+void
+adjust_verbosity(int adj)
+{
+	verbosity += adj;
+}
 
 /*
  * Prints messages to console according to the current verbosity

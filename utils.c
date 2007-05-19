@@ -1,3 +1,23 @@
+/*
+ * Main functions of the program.
+ *
+ * Copyright (C) 2007 David Härdeman <david@hardeman.nu>
+ *
+ *      This program is free software; you can redistribute it and/or modify it
+ *      under the terms of the GNU General Public License as published by the
+ *      Free Software Foundation version 2 of the License.
+ * 
+ *      This program is distributed in the hope that it will be useful, but
+ *      WITHOUT ANY WARRANTY; without even the implied warranty of
+ *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *      General Public License for more details.
+ * 
+ *      You should have received a copy of the GNU General Public License along
+ *      with this program; if not, write to the Free Software Foundation, Inc.,
+ *      51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -7,8 +27,13 @@
 
 #include "utils.h"
 
+/* Controls the verbosity level for msg() */
 int verbosity = 0;
 
+/*
+ * Prints messages to console according to the current verbosity
+ * - see utils.h for level defines
+ */
 int
 msg(int level, const char *fmt, ...)
 {
@@ -29,6 +54,7 @@ msg(int level, const char *fmt, ...)
 	return ret;
 }
 
+/* Malloc which either succeeds or exits */
 void *
 xmalloc(size_t size)
 {
@@ -40,6 +66,7 @@ xmalloc(size_t size)
         return result;
 }
 
+/* Ditto for strdup */
 char *
 xstrdup(const char *s)
 {
@@ -51,6 +78,7 @@ xstrdup(const char *s)
 	return result;
 }
 
+/* Human-readable printout of binary data */
 void
 binary_print(const char *s, ssize_t len)
 {
@@ -64,6 +92,7 @@ binary_print(const char *s, ssize_t len)
 	}
 }
 
+/* Writes data to a file or exits on failure */
 void
 xfwrite(const void *ptr, size_t size, FILE *stream)
 {
@@ -73,6 +102,7 @@ xfwrite(const void *ptr, size_t size, FILE *stream)
 	}
 }
 
+/* Writes an int to a file, using len bytes, in bigendian order */
 void
 write_int(uint64_t value, size_t len, FILE *to)
 {
@@ -84,18 +114,21 @@ write_int(uint64_t value, size_t len, FILE *to)
 	xfwrite(buf, len, to);
 }
 
+/* Writes a binary string to a file */
 void
 write_binary_string(const char *string, size_t len, FILE *to)
 {
 	xfwrite(string, len, to);
 }
 
+/* Writes a normal C string to a file */
 void
 write_string(const char *string, FILE *to)
 {
 	xfwrite(string, strlen(string) + 1, to);
 }
 
+/* Reads an int from a file, using len bytes, in bigendian order */
 uint64_t
 read_int(char **from, size_t len, const char *max)
 {
@@ -103,7 +136,8 @@ read_int(char **from, size_t len, const char *max)
 	int i;
 
 	if (*from + len > max) {
-		msg(MSG_CRITICAL, "Attempt to read beyond end of file, corrupt file?\n");
+		msg(MSG_CRITICAL,
+		    "Attempt to read beyond end of file, corrupt file?\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -113,13 +147,15 @@ read_int(char **from, size_t len, const char *max)
 	return result;
 }
 
+/* Reads a binary string from a file */
 char *
 read_binary_string(char **from, size_t len, const char *max)
 {
 	char *result;
 
 	if (*from + len > max) {
-		msg(MSG_CRITICAL, "Attempt to read beyond end of file, corrupt file?\n");
+		msg(MSG_CRITICAL,
+		    "Attempt to read beyond end of file, corrupt file?\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -129,6 +165,7 @@ read_binary_string(char **from, size_t len, const char *max)
 	return result;
 }
 
+/* Reads a normal C string from a file */
 char *
 read_string(char **from, const char *max)
 {

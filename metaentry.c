@@ -1,3 +1,23 @@
+/*
+ * Various functions to work with meta entries.
+ *
+ * Copyright (C) 2007 David Härdeman <david@hardeman.nu>
+ *
+ *      This program is free software; you can redistribute it and/or modify it
+ *      under the terms of the GNU General Public License as published by the
+ *      Free Software Foundation version 2 of the License.
+ * 
+ *      This program is distributed in the hope that it will be useful, but
+ *      WITHOUT ANY WARRANTY; without even the implied warranty of
+ *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *      General Public License for more details.
+ * 
+ *      You should have received a copy of the GNU General Public License along
+ *      with this program; if not, write to the Free Software Foundation, Inc.,
+ *      51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
@@ -95,7 +115,8 @@ mentry_print(const struct metaentry *mentry)
 	int i;
 
 	if (!mentry || !mentry->path) {
-		msg(MSG_DEBUG, "Incorrect meta entry passed to printmetaentry\n");
+		msg(MSG_DEBUG,
+		    "Incorrect meta entry passed to printmetaentry\n");
 		return;
 	}
 
@@ -145,19 +166,22 @@ mentry_create(const char *path)
 	struct metaentry *mentry;
 
 	if (lstat(path, &sbuf)) {
-		msg(MSG_ERROR, "lstat failed for %s: %s\n", path, strerror(errno));
+		msg(MSG_ERROR, "lstat failed for %s: %s\n",
+		    path, strerror(errno));
 		return NULL;
 	}
 
 	pbuf = getpwuid(sbuf.st_uid);
 	if (!pbuf) {
-		msg(MSG_ERROR, "getpwuid failed for %i: %s\n", (int)sbuf.st_uid, strerror(errno));
+		msg(MSG_ERROR, "getpwuid failed for %i: %s\n",
+		    (int)sbuf.st_uid, strerror(errno));
 		return NULL;
 	}
 
 	gbuf = getgrgid(sbuf.st_gid);
 	if (!gbuf) {
-		msg(MSG_ERROR, "getgrgid failed for %i: %s\n", (int)sbuf.st_gid, strerror(errno));
+		msg(MSG_ERROR, "getgrgid failed for %i: %s\n",
+		    (int)sbuf.st_gid, strerror(errno));
 		return NULL;
 	}
 
@@ -175,14 +199,16 @@ mentry_create(const char *path)
 	
 	lsize = listxattr(path, NULL, 0);
 	if (lsize < 0) {
-		msg(MSG_ERROR, "listxattr failed for %s: %s\n", path, strerror(errno));
+		msg(MSG_ERROR, "listxattr failed for %s: %s\n",
+		    path, strerror(errno));
 		return NULL;
 	}
 
 	list = xmalloc(lsize);
 	lsize = listxattr(path, list, lsize);
 	if (lsize < 0) {
-		msg(MSG_ERROR, "listxattr failed for %s: %s\n", path, strerror(errno));
+		msg(MSG_ERROR, "listxattr failed for %s: %s\n",
+		    path, strerror(errno));
 		return NULL;
 	}
 
@@ -209,7 +235,8 @@ mentry_create(const char *path)
 		mentry->xattr_names[i] = xstrdup(attr);
 		vsize = getxattr(path, attr, NULL, 0);
 		if (vsize < 0) {
-			msg(MSG_ERROR, "getxattr failed for %s: %s\n", path, strerror(errno));
+			msg(MSG_ERROR, "getxattr failed for %s: %s\n",
+			    path, strerror(errno));
 			return NULL;
 		}
 
@@ -218,7 +245,8 @@ mentry_create(const char *path)
 
 		vsize = getxattr(path, attr, mentry->xattr_values[i], vsize);
 		if (vsize < 0) {
-			msg(MSG_ERROR, "getxattr failed for %s: %s\n", path, strerror(errno));
+			msg(MSG_ERROR, "getxattr failed for %s: %s\n",
+			    path, strerror(errno));
 			return NULL;
 		}
 		i++;
@@ -264,7 +292,8 @@ mentries_recurse(const char *path, struct metaentry **mhead)
 		return;
 
 	if (lstat(path, &sbuf)) {
-		msg(MSG_ERROR, "lstat failed for %s: %s\n", path, strerror(errno));
+		msg(MSG_ERROR, "lstat failed for %s: %s\n",
+		    path, strerror(errno));
 		return;
 	}
 
@@ -277,12 +306,15 @@ mentries_recurse(const char *path, struct metaentry **mhead)
 	if (S_ISDIR(sbuf.st_mode)) {
 		dir = opendir(path);
 		if (!dir) {
-			msg(MSG_ERROR, "opendir failed for %s: %s\n", path, strerror(errno));
+			msg(MSG_ERROR, "opendir failed for %s: %s\n",
+			    path, strerror(errno));
 			return;
 		}
 
 		while ((dent = readdir(dir))) {
-			if (!strcmp(dent->d_name, ".") || !strcmp(dent->d_name, "..") || !strcmp(dent->d_name, ".git"))
+			if (!strcmp(dent->d_name, ".") ||
+			    !strcmp(dent->d_name, "..") ||
+			    !strcmp(dent->d_name, ".git"))
 				continue;
 			snprintf(tpath, PATH_MAX, "%s/%s", path, dent->d_name);
 			tpath[PATH_MAX - 1] = '\0';
@@ -328,7 +360,8 @@ mentries_tofile(const struct metaentry *mhead, const char *path)
 		for (i = 0; i < mentry->xattrs; i++) {
 			write_string(mentry->xattr_names[i], to);
 			write_int(mentry->xattr_lvalues[i], 4, to);
-			write_binary_string(mentry->xattr_values[i], mentry->xattr_lvalues[i], to);
+			write_binary_string(mentry->xattr_values[i],
+					    mentry->xattr_lvalues[i], to);
 		}
 	}
 
@@ -362,9 +395,11 @@ mentries_fromfile(struct metaentry **mhead, const char *path)
 		exit(EXIT_FAILURE);
 	}
 
-	mmapstart = mmap(NULL, (size_t)sbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
+	mmapstart = mmap(NULL, (size_t)sbuf.st_size, PROT_READ,
+			 MAP_SHARED, fd, 0);
 	if (mmapstart == MAP_FAILED) {
-		msg(MSG_CRITICAL, "Unable to mmap %s: %s\n", path, strerror(errno));
+		msg(MSG_CRITICAL, "Unable to mmap %s: %s\n",
+		    path, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 	ptr = mmapstart;
@@ -384,7 +419,8 @@ mentries_fromfile(struct metaentry **mhead, const char *path)
 
 	while (ptr < mmapstart + sbuf.st_size) {
 		if (*ptr == '\0') {
-			msg(MSG_CRITICAL, "Invalid characters in file %s\n", path);
+			msg(MSG_CRITICAL, "Invalid characters in file %s\n",
+			    path);
 			goto out;
 		}
 
@@ -397,16 +433,26 @@ mentries_fromfile(struct metaentry **mhead, const char *path)
 		mentry->mode = (mode_t)read_int(&ptr, 2, max);
 		mentry->xattrs = (unsigned int)read_int(&ptr, 4, max);
 
-		if (mentry->xattrs > 0) {
-			mentry->xattr_names = xmalloc(mentry->xattrs * sizeof(char *));
-			mentry->xattr_lvalues = xmalloc(mentry->xattrs * sizeof(int));
-			mentry->xattr_values = xmalloc(mentry->xattrs * sizeof(char *));
+		if (!mentry->xattrs) {
+			mentry_insert(mentry, mhead);
+			continue;
+		}
 
-			for (i = 0; i < mentry->xattrs; i++) {
-				mentry->xattr_names[i] = read_string(&ptr, max);
-				mentry->xattr_lvalues[i] = (int)read_int(&ptr, 4, max);
-				mentry->xattr_values[i] = read_binary_string(&ptr, mentry->xattr_lvalues[i], max);
-			}
+		mentry->xattr_names = xmalloc(mentry->xattrs *
+				      sizeof(char *));
+		mentry->xattr_lvalues = xmalloc(mentry->xattrs *
+					sizeof(int));
+		mentry->xattr_values = xmalloc(mentry->xattrs *
+				       sizeof(char *));
+
+		for (i = 0; i < mentry->xattrs; i++) {
+			mentry->xattr_names[i] = read_string(&ptr, max);
+			mentry->xattr_lvalues[i] =
+				(int)read_int(&ptr, 4, max);
+			mentry->xattr_values[i] =
+				read_binary_string(&ptr, 
+						   mentry->xattr_lvalues[i],
+						   max);
 		}
 		mentry_insert(mentry, mhead);
 	}
@@ -440,7 +486,8 @@ mentry_find_xattr(struct metaentry *haystack, struct metaentry *needle, int n)
 			continue;
 		if (haystack->xattr_lvalues[i] != needle->xattr_lvalues[n])
 			return -1;
-		if (bcmp(haystack->xattr_values[i], needle->xattr_values[n], needle->xattr_lvalues[n]))
+		if (bcmp(haystack->xattr_values[i], needle->xattr_values[n],
+			 needle->xattr_lvalues[n]))
 			return -1;
 		return i;
 	}
@@ -493,7 +540,8 @@ mentry_compare(struct metaentry *left, struct metaentry *right)
 		retval |= DIFF_TYPE;
 
 	if (do_mtime && strcmp(left->path, METAFILE) && 
-	    (left->mtime != right->mtime || left->mtimensec != right->mtimensec))
+	    (left->mtime != right->mtime ||
+	     left->mtimensec != right->mtimensec))
 		retval |= DIFF_MTIME;
 
 	if (mentry_compare_xattr(left, right)) {

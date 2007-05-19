@@ -1,3 +1,23 @@
+/*
+ * Main functions of the program.
+ *
+ * Copyright (C) 2007 David Härdeman <david@hardeman.nu>
+ *
+ *      This program is free software; you can redistribute it and/or modify it
+ *      under the terms of the GNU General Public License as published by the
+ *      Free Software Foundation version 2 of the License.
+ * 
+ *      This program is distributed in the hope that it will be useful, but
+ *      WITHOUT ANY WARRANTY; without even the implied warranty of
+ *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *      General Public License for more details.
+ * 
+ *      You should have received a copy of the GNU General Public License along
+ *      with this program; if not, write to the Free Software Foundation, Inc.,
+ *      51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
@@ -13,8 +33,13 @@
 #include "utils.h"
 #include "metaentry.h"
 
+/* Used to signal whether mtimes should be corrected */
 int do_mtime = 0;
 
+/*
+ * Prints differences between stored and actual metadata
+ * - for use in mentries_compare
+ */
 static void
 compare_print(struct metaentry *left, struct metaentry *right, int cmp)
 {
@@ -49,6 +74,10 @@ compare_print(struct metaentry *left, struct metaentry *right, int cmp)
 	msg(MSG_QUIET, "\n");
 }
 
+/*
+ * Tries to change the real metadata to match the stored one
+ * - for use in mentries_compare
+ */
 static void
 compare_fix(struct metaentry *left, struct metaentry *right, int cmp)
 {
@@ -60,7 +89,8 @@ compare_fix(struct metaentry *left, struct metaentry *right, int cmp)
 	int i;
 
 	if (!left && !right) {
-		msg(MSG_ERROR, "%s called with incorrect arguments\n", __FUNCTION__);
+		msg(MSG_ERROR, "%s called with incorrect arguments\n",
+		    __FUNCTION__);
 		return;
 	}
 
@@ -80,7 +110,8 @@ compare_fix(struct metaentry *left, struct metaentry *right, int cmp)
 	}
 
 	if (cmp & DIFF_TYPE) {
-		msg(MSG_NORMAL, "%s:\tnew type, will not change metadata\n", left->path);
+		msg(MSG_NORMAL, "%s:\tnew type, will not change metadata\n",
+		    left->path);
 		return;
 	}
 
@@ -88,40 +119,47 @@ compare_fix(struct metaentry *left, struct metaentry *right, int cmp)
 
 	while (cmp & (DIFF_OWNER | DIFF_GROUP)) {
 		if (cmp & DIFF_OWNER) {
-			msg(MSG_NORMAL, "\tchanging owner from %s to %s\n", left->path, left->group, right->group);
+			msg(MSG_NORMAL, "\tchanging owner from %s to %s\n",
+			    left->path, left->group, right->group);
 			owner = getpwnam(right->owner);
 			if (!owner) {
-				msg(MSG_DEBUG, "\tgetpwnam failed: %s\n", strerror(errno));
+				msg(MSG_DEBUG, "\tgetpwnam failed: %s\n",
+				    strerror(errno));
 				break;
 			}
 			uid = owner->pw_uid;
 		}
 
 		if (cmp & DIFF_GROUP) {
-			msg(MSG_NORMAL, "\tchanging group from %s to %s\n", left->path, left->group, right->group);
+			msg(MSG_NORMAL, "\tchanging group from %s to %s\n",
+			    left->path, left->group, right->group);
 			group = getgrnam(right->group);
 			if (!group) {
-				msg(MSG_DEBUG, "\tgetgrnam failed: %s\n", strerror(errno));
+				msg(MSG_DEBUG, "\tgetgrnam failed: %s\n",
+				    strerror(errno));
 				break;
 			}
 			gid = group->gr_gid;
 		}
 
 		if (lchown(left->path, uid, gid)) {
-			msg(MSG_DEBUG, "\tlchown failed: %s\n", strerror(errno));
+			msg(MSG_DEBUG, "\tlchown failed: %s\n",
+			    strerror(errno));
 			break;
 		}
 		break;
 	}
 
 	if (cmp & DIFF_MODE) {
-		msg(MSG_NORMAL, "%s:\tchanging mode from 0%o to 0%o\n", left->path, left->mode, right->mode);
+		msg(MSG_NORMAL, "%s:\tchanging mode from 0%o to 0%o\n",
+		    left->path, left->mode, right->mode);
 		if (chmod(left->path, left->mode))
 			msg(MSG_DEBUG, "\tchmod failed: %s\n", strerror(errno));
 	}
 
 	if (cmp & DIFF_MTIME) {
-		msg(MSG_NORMAL, "%s:\tchanging mtime from %ld to %ld\n", left->path, left->mtime, right->mtime);
+		msg(MSG_NORMAL, "%s:\tchanging mtime from %ld to %ld\n",
+		    left->path, left->mtime, right->mtime);
 		/* FIXME: Use utimensat here */
 		tbuf.actime = right->mtime;
 		tbuf.modtime = right->mtime;
@@ -140,7 +178,8 @@ compare_fix(struct metaentry *left, struct metaentry *right, int cmp)
 			msg(MSG_NORMAL, "%s:\tremoving xattr %s\n",
 			    left->path, left->xattr_names[i]);
 			if (lremovexattr(left->path, left->xattr_names[i]))
-				msg(MSG_DEBUG, "\tlremovexattr failed: %s\n", strerror(errno));
+				msg(MSG_DEBUG, "\tlremovexattr failed: %s\n",
+				    strerror(errno));
 		}
 
 		for (i = 0; i < right->xattrs; i++) {
@@ -151,12 +190,15 @@ compare_fix(struct metaentry *left, struct metaentry *right, int cmp)
 			msg(MSG_NORMAL, "%s:\tadding xattr %s\n",
 			    right->path, right->xattr_names[i]);
 			if (lsetxattr(right->path, right->xattr_names[i], 
-				      right->xattr_values[i], right->xattr_lvalues[i], XATTR_CREATE))
-				msg(MSG_DEBUG, "\tlsetxattr failed: %s\n", strerror(errno));
+				      right->xattr_values[i],
+				      right->xattr_lvalues[i], XATTR_CREATE))
+				msg(MSG_DEBUG, "\tlsetxattr failed: %s\n",
+				    strerror(errno));
 		}
 	}
 }
 
+/* Prints usage message and exits */
 static void
 usage(const char *arg0, const char *message)
 {
@@ -164,7 +206,7 @@ usage(const char *arg0, const char *message)
 		msg(MSG_CRITICAL, "%s: %s\n\n", arg0, msg);
 	msg(MSG_CRITICAL, "Usage: %s ACTION [OPTIONS] [PATH]...\n\n", arg0);
 	msg(MSG_CRITICAL, "Where ACTION is one of:\n"
-	    "  -d, --diff\tShow differences between stored and actual metadata\n"
+	    "  -d, --diff\tShow differences between stored and real metadata\n"
 	    "  -s, --save\tSave current metadata\n"
 	    "  -a, --apply\tApply stored metadata\n"
 	    "  -h, --help\tHelp message (this text)\n\n"
@@ -175,6 +217,7 @@ usage(const char *arg0, const char *message)
 	exit(message ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
+/* Options */
 static struct option long_options[] = {
 	{"compare", 0, 0, 0},
 	{"save", 0, 0, 0},
@@ -186,6 +229,7 @@ static struct option long_options[] = {
 	{0, 0, 0, 0}
 };
 
+/* Main function */
 int
 main(int argc, char **argv, char **envp)
 {
@@ -194,19 +238,23 @@ main(int argc, char **argv, char **envp)
 	struct metaentry *mfhead = NULL;
 	int action = 0;
 
+	/* Parse options */
 	i = 0;
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "csahvqm", long_options, &option_index);
+		c = getopt_long(argc, argv, "csahvqm",
+				long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
 		case 0:
 			if (!strcmp("verbose", long_options[option_index].name)) {
 				verbosity++;
-			} else if (!strcmp("quiet", long_options[option_index].name)) {
+			} else if (!strcmp("quiet",
+					   long_options[option_index].name)) {
 				verbosity--;
-			} else if (!strcmp("mtime", long_options[option_index].name)) {
+			} else if (!strcmp("mtime",
+					   long_options[option_index].name)) {
 				do_mtime = 1;
 			} else {
 				action |= (1 << option_index);
@@ -243,14 +291,17 @@ main(int argc, char **argv, char **envp)
 		}
 	}
 
+	/* Make sure only one action is specified */
 	if (i != 1)
 		usage(argv[0], "incorrect option(s)");
 
+	/* Perform action */
 	switch (action) {
 	case ACTION_DIFF:
 		mentries_fromfile(&mfhead, METAFILE);
 		if (!mfhead) {
-			msg(MSG_CRITICAL, "Failed to load metadata from file\n");
+			msg(MSG_CRITICAL, "Failed to load metadata from %s\n",
+			    METAFILE);
 			exit(EXIT_FAILURE);
 		}
 
@@ -262,7 +313,8 @@ main(int argc, char **argv, char **envp)
 		}
 
 		if (!mhead) {
-			msg(MSG_CRITICAL, "Failed to load metadata from file system\n");
+			msg(MSG_CRITICAL,
+			    "Failed to load metadata from file system\n");
 			exit(EXIT_FAILURE);
 		}
 
@@ -278,7 +330,8 @@ main(int argc, char **argv, char **envp)
 		}
 
 		if (!mhead) {
-			msg(MSG_CRITICAL, "Failed to load metadata from file system\n");
+			msg(MSG_CRITICAL,
+			    "Failed to load metadata from file system\n");
 			exit(EXIT_FAILURE);
 		}
 
@@ -288,7 +341,8 @@ main(int argc, char **argv, char **envp)
 	case ACTION_APPLY:
 		mentries_fromfile(&mfhead, METAFILE);
 		if (!mfhead) {
-			msg(MSG_CRITICAL, "Failed to load metadata from file\n");
+			msg(MSG_CRITICAL, "Failed to load metadata from %s\n",
+			    METAFILE);
 			exit(EXIT_FAILURE);
 		}
 
@@ -300,7 +354,8 @@ main(int argc, char **argv, char **envp)
 		}
 
 		if (!mhead) {
-			msg(MSG_CRITICAL, "Failed to load metadata from file system\n");
+			msg(MSG_CRITICAL,
+			    "Failed to load metadata from file system\n");
 			exit(EXIT_FAILURE);
 		}
 
@@ -313,3 +368,4 @@ main(int argc, char **argv, char **envp)
 
 	exit(EXIT_SUCCESS);
 }
+

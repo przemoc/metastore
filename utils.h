@@ -20,6 +20,10 @@
 
 /* For uint64_t */
 #include <stdint.h>
+/* For ssize_t */
+#include <unistd.h>
+/* For FILE */
+#include <stdio.h>
 
 /* Adjusts the verbosity level for msg() */
 void adjust_verbosity(int adj);

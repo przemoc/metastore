@@ -24,6 +24,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <unistd.h>
 
 #include "utils.h"
 

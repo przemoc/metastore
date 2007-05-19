@@ -17,30 +17,52 @@
 #
 # Generic settings
 #
-CC       = gcc
-CFLAGS   = -g -Wall
-LDFLAGS  =
-INCLUDES =
-COMPILE  = $(CC) $(INCLUDES) $(CFLAGS)
-LINK     = $(CC) $(CFLAGS) $(LDFLAGS)
-OBJECTS = utils.o metastore.o metaentry.o
-HEADERS = utils.h metastore.h metaentry.h
+CC              = gcc
+CFLAGS          = -g -Wall
+LDFLAGS         =
+INCLUDES        =
+INSTALL         = install -c
+INSTALL_PROGRAM = ${INSTALL}
+INSTALL_DATA    = ${INSTALL} -m 644
+COMPILE         = $(CC) $(INCLUDES) $(CFLAGS)
+LINK            = $(CC) $(CFLAGS) $(LDFLAGS)
+OBJECTS         = utils.o metastore.o metaentry.o
+HEADERS         = utils.h metastore.h metaentry.h
+
+DESTDIR        ?=
+prefix         	= /usr
+usrbindir       = ${prefix}/bin
+mandir          = ${prefix}/share/man
 
 #
 # Targets
 #
 
+all: metastore
+.DEFAULT: all
+
+
 %.o: %.c $(HEADERS)
 	$(COMPILE) -o $@ -c $<
+
 
 metastore: $(OBJECTS)
 	$(LINK) -o $@ $^
 
-all: metastore
-.PHONY: all
-.DEFAULT: all
+
+install: all
+	$(INSTALL_DATA) -D metastore.1 $(DESTDIR)$(mandir)/man1/metastore.1
+	$(INSTALL_PROGRAM) -D metastore $(DESTDIR)$(usrbindir)/metastore
+
+
+uninstall:
+	- rm -f $(DESTDIR)$(mandir)/man1/metastore.1
+	- rm -f $(DESTDIR)$(usrbindir)/metastore
+
 
 clean:
-	rm -f *.o metastore
-.PHONY: clean
+	- rm -f *.o metastore
+
+
+.PHONY: install uninstall clean all
 

@@ -515,7 +515,7 @@ mentry_compare_xattr(struct metaentry *left, struct metaentry *right)
 }
 
 static int
-mentry_compare(struct metaentry *left, struct metaentry *right)
+mentry_compare(struct metaentry *left, struct metaentry *right, int do_mtime)
 {
 	int retval = DIFF_NONE;
 
@@ -555,7 +555,8 @@ mentry_compare(struct metaentry *left, struct metaentry *right)
 void
 mentries_compare(struct metaentry *mheadleft,
 		 struct metaentry *mheadright,
-		 void (*printfunc)(struct metaentry *, struct metaentry *, int))
+		 void (*pfunc)(struct metaentry *, struct metaentry *, int),
+		 int do_mtime)
 {
 	struct metaentry *left, *right;
 	int cmp;
@@ -570,14 +571,14 @@ mentries_compare(struct metaentry *mheadleft,
 		if (!right)
 			cmp = DIFF_ADDED;
 		else
-			cmp = mentry_compare(left, right);
-		printfunc(left, right, cmp);
+			cmp = mentry_compare(left, right, do_mtime);
+		pfunc(left, right, cmp);
 	}
 
 	for (right = mheadright; right; right = right->next) {
 		left = mentry_find(right->path, mheadleft);
 		if (!left)
-			printfunc(left, right, DIFF_DELE);
+			pfunc(left, right, DIFF_DELE);
 	}
 }
 

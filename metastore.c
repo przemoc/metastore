@@ -34,7 +34,7 @@
 #include "metaentry.h"
 
 /* Used to signal whether mtimes should be corrected */
-int do_mtime = 0;
+static int do_mtime = 0;
 
 /*
  * Prints differences between stored and actual metadata
@@ -318,7 +318,7 @@ main(int argc, char **argv, char **envp)
 			exit(EXIT_FAILURE);
 		}
 
-		mentries_compare(mhead, mfhead, compare_print);
+		mentries_compare(mhead, mfhead, compare_print, do_mtime);
 		break;
 
 	case ACTION_SAVE:
@@ -359,7 +359,7 @@ main(int argc, char **argv, char **envp)
 			exit(EXIT_FAILURE);
 		}
 
-		mentries_compare(mhead, mfhead, compare_fix);
+		mentries_compare(mhead, mfhead, compare_fix, do_mtime);
 		break;
 
 	case ACTION_HELP:

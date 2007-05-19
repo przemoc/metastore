@@ -33,9 +33,6 @@
 #define ACTION_APPLY 0x04
 #define ACTION_HELP  0x08
 
-/* Used to signal whether mtimes should be corrected */
-extern int do_mtime;
-
 /* Data structure to hold all metadata for a file */
 struct metaentry {
 	struct metaentry *next;

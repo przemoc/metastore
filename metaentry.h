@@ -18,13 +18,17 @@
  *
  */
 
+/* Recurses opath and adds metadata entries to the mhead list */
 void mentries_recurse_path(const char *opath, struct metaentry **mhead);
 
+/* Stores a metadata list to a file */
 void mentries_tofile(const struct metaentry *mhead, const char *path);
 
+/* Creates a metadata list from a file */
 void mentries_fromfile(struct metaentry **mhead, const char *path);
 
-int mentry_find_xattr(struct metaentry *heystack,
+/* Searches haystack for an xattr matching xattr n in needle */
+int mentry_find_xattr(struct metaentry *haystack,
                       struct metaentry *needle,
                       int n);
 
@@ -37,10 +41,12 @@ int mentry_find_xattr(struct metaentry *heystack,
 #define DIFF_XATTR 0x20
 #define DIFF_ADDED 0x40
 #define DIFF_DELE  0x80
-void mentries_compare(struct metaentry *,
-                      struct metaentry *,
-                      void (*printfunc)(struct metaentry *,
-                                        struct metaentry *,
-                                        int)
-                     );
+
+/* Compares two lists of metaentries and calls pfunc for each entry */
+void mentries_compare(struct metaentry *mheadleft,
+                      struct metaentry *mheadright,
+                      void (*pfunc)(struct metaentry *right,
+                                    struct metaentry *left,
+                                    int cmp),
+                      int do_mtime);
 

@@ -1,0 +1,16 @@
+Source: metastore
+Section: misc
+Priority: optional
+Maintainer: David Härdeman <david@hardeman.nu>
+Build-Depends: debhelper (>= 5.0.0)
+Standards-Version: 3.7.2.2
+XS-Vcs-Git: git://git.hardeman.nu/metastore.git
+XS-Vcs-Browser: http://git.hardeman.nu/?p=metastore.git;a=summary
+
+Package: metastore
+Section: misc
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Store and restore metadata
+ This package contains the metastore tool to store and restore metadata
+ from a filesystem.

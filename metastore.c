@@ -204,7 +204,7 @@ usage(const char *arg0, const char *message)
 {
 	if (message)
 		msg(MSG_CRITICAL, "%s: %s\n\n", arg0, msg);
-	msg(MSG_CRITICAL, "Usage: %s ACTION [OPTIONS] [PATH]...\n\n", arg0);
+	msg(MSG_CRITICAL, "Usage: %s ACTION [OPTION...] [PATH...]\n\n", arg0);
 	msg(MSG_CRITICAL, "Where ACTION is one of:\n"
 	    "  -d, --diff\tShow differences between stored and real metadata\n"
 	    "  -s, --save\tSave current metadata\n"
@@ -212,7 +212,8 @@ usage(const char *arg0, const char *message)
 	    "  -h, --help\tHelp message (this text)\n\n"
 	    "Valid OPTIONS are (can be given more than once):\n"
 	    "  -v, --verbose\tPrint more verbose messages\n"
-	    "  -q, --quiet\tPrint less verbose messages\n");
+	    "  -q, --quiet\tPrint less verbose messages\n"
+	    "  -m, --mtime\tAlso take mtime into account for diff or apply\n");
 
 	exit(message ? EXIT_FAILURE : EXIT_SUCCESS);
 }

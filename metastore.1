@@ -1,0 +1,53 @@
+.TH metastore "1" "May 2007"
+.\"
+.SH NAME
+metastore \- stores and restores filesystem metadata
+.\"
+.SH SYNOPSIS
+\fBmetastore\fR \fIACTION\fR [\fIOPTION...\fR] [\fIPATH...\fR]
+.\"
+.SH DESCRIPTION
+Stores or restores metadata (owner, group, permissions, xattrs and optionally
+mtime) for a filesystem tree. This can be used to preserve the metadata in
+situations where it is usually not stored (git and tar for example) or as
+a tripwire like mechanism to detect any changes to metadata. Note that e.g.
+SELinux stores its labels in xattrs so care should be taken when applying
+stored metadata to make sure that system security is not compromised.
+.\"
+.SH ACTIONS
+.TP
+.B -d, --diff
+Shows the difference between the stored and real metadata.
+.TP
+.B -s, --save
+Saves the current metadata to ./.metadata.
+.TP
+.B -a, --apply
+Attempts to apply the stored metadata to the file system.
+.TP
+.B -h, --help
+Prints a help message and exits.
+.\"
+.SH OPTIONS
+.TP
+.B -v, --verbose
+Causes metastore to print more verbose messages. Can be repeated more than
+once for even more verbosity.
+.TP
+.B -q, --quiet
+Causes metastore to print less verbose messages. Can be repeated more than
+once for even less verbosity.
+.TP
+.B -m, --mtime
+Causes metastore to also take mtime into account for the diff or apply actions.
+.\"
+.SH PATHS
+If no path is specified, metastore will use the current directory as the basis
+for the actions. This is the recommended way of executing metastore.
+Alternatively, one or more paths can be specified and they will each be
+examined. Later invocations should be made using the exact same paths to
+ensure that the stored metadata is interpreted correctly.
+.\"
+.SH AUTHOR
+Written by David Härdeman <david@hardeman.nu>
+

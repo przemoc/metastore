@@ -40,6 +40,7 @@
 #include "utils.h"
 
 #if 0
+/* Free's a metaentry and all its parameters */
 static void
 mentry_free(struct metaentry *m)
 {
@@ -65,6 +66,7 @@ mentry_free(struct metaentry *m)
 }
 #endif
 
+/* Allocates an empty metaentry */
 static struct metaentry *
 mentry_alloc()
 {
@@ -74,25 +76,26 @@ mentry_alloc()
 	return mentry;
 }
 
+/* Inserts a metaentry into a metaentry list */
 static void
-mentry_insert(struct metaentry *mentry, struct metaentry **mhead)
+mentry_insert(struct metaentry *mentry, struct metaentry **mlist)
 {
 	struct metaentry *prev;
 	struct metaentry *curr;
 	int comp;
 
-	if (!(*mhead)) {
-		*mhead = mentry;
+	if (!(*mlist)) {
+		*mlist = mentry;
 		return;
 	}
 
-	if (strcmp(mentry->path, (*mhead)->path) < 0) {
-		mentry->next = *mhead;
-		*mhead = mentry;
+	if (strcmp(mentry->path, (*mlist)->path) < 0) {
+		mentry->next = *mlist;
+		*mlist = mentry;
 		return;
 	}
 
-	prev = *mhead;
+	prev = *mlist;
 	for (curr = prev->next; curr; curr = curr->next) {
 		comp = strcmp(mentry->path, curr->path);
 		if (!comp)
@@ -109,6 +112,7 @@ mentry_insert(struct metaentry *mentry, struct metaentry **mhead)
 }
 
 #ifdef DEBUG
+/* Prints a metaentry */
 static void
 mentry_print(const struct metaentry *mentry)
 {
@@ -139,13 +143,14 @@ mentry_print(const struct metaentry *mentry)
 	msg(MSG_DEBUG, "===========================\n\n");
 }
 
+/* Prints all metaentries in a metaentry list */
 static void
-mentries_print(const struct metaentry *mhead)
+mentries_print(const struct metaentry *mlist)
 {
 	const struct metaentry *mentry;
 	int i;
 
-	for (mentry = mhead; mentry; mentry = mentry->next) {
+	for (mentry = mlist; mentry; mentry = mentry->next) {
 		i++;
 		mentry_print(mentry);
 	}
@@ -154,6 +159,7 @@ mentries_print(const struct metaentry *mhead)
 }
 #endif
 
+/* Creates a metaentry for the file/dir/etc at path */
 static struct metaentry *
 mentry_create(const char *path)
 {
@@ -255,6 +261,7 @@ mentry_create(const char *path)
 	return mentry;
 }
 
+/* Cleans up a path and makes it relative to current working dir unless it is absolute */
 static char *
 normalize_path(const char *orig)
 {
@@ -279,8 +286,9 @@ normalize_path(const char *orig)
 	return result;
 }
 
+/* Internal function for the recursive path walk */
 static void
-mentries_recurse(const char *path, struct metaentry **mhead)
+mentries_recurse(const char *path, struct metaentry **mlist)
 {
 	struct stat sbuf;
 	struct metaentry *mentry;
@@ -301,7 +309,7 @@ mentries_recurse(const char *path, struct metaentry **mhead)
 	if (!mentry)
 		return;
 
-	mentry_insert(mentry, mhead);
+	mentry_insert(mentry, mlist);
 
 	if (S_ISDIR(sbuf.st_mode)) {
 		dir = opendir(path);
@@ -318,23 +326,25 @@ mentries_recurse(const char *path, struct metaentry **mhead)
 				continue;
 			snprintf(tpath, PATH_MAX, "%s/%s", path, dent->d_name);
 			tpath[PATH_MAX - 1] = '\0';
-			mentries_recurse(tpath, mhead);
+			mentries_recurse(tpath, mlist);
 		}
 
 		closedir(dir);
 	}
 }
 
+/* Recurses opath and adds metadata entries to the metaentry list */
 void
-mentries_recurse_path(const char *opath, struct metaentry **mhead)
+mentries_recurse_path(const char *opath, struct metaentry **mlist)
 {
 	char *path = normalize_path(opath);
-	mentries_recurse(path, mhead);
+	mentries_recurse(path, mlist);
 	free(path);
 }
 
+/* Stores a metaentry list to a file */
 void 
-mentries_tofile(const struct metaentry *mhead, const char *path)
+mentries_tofile(const struct metaentry *mlist, const char *path)
 {
 	FILE *to;
 	const struct metaentry *mentry;
@@ -349,7 +359,7 @@ mentries_tofile(const struct metaentry *mhead, const char *path)
 	write_binary_string(SIGNATURE, SIGNATURELEN, to);
 	write_binary_string(VERSION, VERSIONLEN, to);
 
-	for (mentry = mhead; mentry; mentry = mentry->next) {
+	for (mentry = mlist; mentry; mentry = mentry->next) {
 		write_string(mentry->path, to);
 		write_string(mentry->owner, to);
 		write_string(mentry->group, to);
@@ -368,8 +378,9 @@ mentries_tofile(const struct metaentry *mhead, const char *path)
 	fclose(to);
 }
 
+/* Creates a metaentry list from a file */
 void
-mentries_fromfile(struct metaentry **mhead, const char *path)
+mentries_fromfile(struct metaentry **mlist, const char *path)
 {
 	struct metaentry *mentry;
 	char *mmapstart;
@@ -434,7 +445,7 @@ mentries_fromfile(struct metaentry **mhead, const char *path)
 		mentry->xattrs = (unsigned int)read_int(&ptr, 4, max);
 
 		if (!mentry->xattrs) {
-			mentry_insert(mentry, mhead);
+			mentry_insert(mentry, mlist);
 			continue;
 		}
 
@@ -454,7 +465,7 @@ mentries_fromfile(struct metaentry **mhead, const char *path)
 						   mentry->xattr_lvalues[i],
 						   max);
 		}
-		mentry_insert(mentry, mhead);
+		mentry_insert(mentry, mlist);
 	}
 
 out:
@@ -462,20 +473,21 @@ out:
 	close(fd);
 }
 
+/* Finds a metaentry matching path */
 static struct metaentry *
-mentry_find(const char *path, struct metaentry *mhead)
+mentry_find(const char *path, struct metaentry *mlist)
 {
 	struct metaentry *m;
 
 	/* FIXME - We can do a bisect search here instead */
-	for (m = mhead; m; m = m->next) {
+	for (m = mlist; m; m = m->next) {
 		if (!strcmp(path, m->path))
 			return m;
 	}
 	return NULL;
 }
 
-/* Returns xattr index in haystack which corresponds to xattr n in needle */
+/* Searches haystack for an xattr matching xattr number n in needle */
 int
 mentry_find_xattr(struct metaentry *haystack, struct metaentry *needle, int n)
 {
@@ -514,6 +526,7 @@ mentry_compare_xattr(struct metaentry *left, struct metaentry *right)
 	return 0;
 }
 
+/* Compares two metaentries and returns an int with a bitmask of differences */
 static int
 mentry_compare(struct metaentry *left, struct metaentry *right, int do_mtime)
 {
@@ -552,33 +565,35 @@ mentry_compare(struct metaentry *left, struct metaentry *right, int do_mtime)
 	return retval;
 }
 
+/* Compares lists of real and stored metadata and calls pfunc for each */
 void
-mentries_compare(struct metaentry *mheadleft,
-		 struct metaentry *mheadright,
-		 void (*pfunc)(struct metaentry *, struct metaentry *, int),
+mentries_compare(struct metaentry *mlistreal,
+		 struct metaentry *mliststored,
+		 void (*pfunc)
+		 (struct metaentry *real, struct metaentry *stored, int do_mtime),
 		 int do_mtime)
 {
-	struct metaentry *left, *right;
+	struct metaentry *real, *stored;
 	int cmp;
 
-	if (!mheadleft || !mheadright) {
+	if (!mlistreal || !mliststored) {
 		msg(MSG_ERROR, "%s called with empty list\n", __FUNCTION__);
 		return;
 	}
 
-	for (left = mheadleft; left; left = left->next) {
-		right = mentry_find(left->path, mheadright);
-		if (!right)
+	for (real = mlistreal; real; real = real->next) {
+		stored = mentry_find(real->path, mliststored);
+		if (!stored)
 			cmp = DIFF_ADDED;
 		else
-			cmp = mentry_compare(left, right, do_mtime);
-		pfunc(left, right, cmp);
+			cmp = mentry_compare(real, stored, do_mtime);
+		pfunc(real, stored, cmp);
 	}
 
-	for (right = mheadright; right; right = right->next) {
-		left = mentry_find(right->path, mheadleft);
-		if (!left)
-			pfunc(left, right, DIFF_DELE);
+	for (stored = mliststored; stored; stored = stored->next) {
+		real = mentry_find(stored->path, mlistreal);
+		if (!real)
+			pfunc(real, stored, DIFF_DELE);
 	}
 }
 

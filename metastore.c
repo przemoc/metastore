@@ -37,28 +37,28 @@
 static int do_mtime = 0;
 
 /*
- * Prints differences between stored and actual metadata
+ * Prints differences between real and stored actual metadata
  * - for use in mentries_compare
  */
 static void
-compare_print(struct metaentry *left, struct metaentry *right, int cmp)
+compare_print(struct metaentry *real, struct metaentry *stored, int cmp)
 {
-	if (!left) {
-		msg(MSG_QUIET, "%s:\tremoved\n", right->path);
+	if (!real) {
+		msg(MSG_QUIET, "%s:\tremoved\n", stored->path);
 		return;
 	}
 
-	if (!right) {
-		msg(MSG_QUIET, "%s:\tadded\n", left->path);
+	if (!stored) {
+		msg(MSG_QUIET, "%s:\tadded\n", real->path);
 		return;
 	}
 
 	if (cmp == DIFF_NONE) {
-		msg(MSG_DEBUG, "%s:\tno difference\n", left->path);
+		msg(MSG_DEBUG, "%s:\tno difference\n", real->path);
 		return;
 	}
 
-	msg(MSG_QUIET, "%s:\t", left->path);
+	msg(MSG_QUIET, "%s:\t", real->path);
 	if (cmp & DIFF_OWNER)
 		msg(MSG_QUIET, "owner ");
 	if (cmp & DIFF_GROUP)
@@ -79,7 +79,7 @@ compare_print(struct metaentry *left, struct metaentry *right, int cmp)
  * - for use in mentries_compare
  */
 static void
-compare_fix(struct metaentry *left, struct metaentry *right, int cmp)
+compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 {
 	struct group *group;
 	struct passwd *owner;
@@ -88,40 +88,40 @@ compare_fix(struct metaentry *left, struct metaentry *right, int cmp)
 	struct utimbuf tbuf;
 	int i;
 
-	if (!left && !right) {
+	if (!real && !stored) {
 		msg(MSG_ERROR, "%s called with incorrect arguments\n",
 		    __FUNCTION__);
 		return;
 	}
 
-	if (!left) {
-		msg(MSG_NORMAL, "%s:\tremoved\n", right->path);
+	if (!real) {
+		msg(MSG_NORMAL, "%s:\tremoved\n", stored->path);
 		return;
 	}
 
-	if (!right) {
-		msg(MSG_NORMAL, "%s:\tadded\n", left->path);
+	if (!stored) {
+		msg(MSG_NORMAL, "%s:\tadded\n", real->path);
 		return;
 	}
 
 	if (cmp == DIFF_NONE) {
-		msg(MSG_DEBUG, "%s:\tno difference\n", left->path);
+		msg(MSG_DEBUG, "%s:\tno difference\n", real->path);
 		return;
 	}
 
 	if (cmp & DIFF_TYPE) {
 		msg(MSG_NORMAL, "%s:\tnew type, will not change metadata\n",
-		    left->path);
+		    real->path);
 		return;
 	}
 
-	msg(MSG_QUIET, "%s:\tchanging metadata\n", left->path);
+	msg(MSG_QUIET, "%s:\tchanging metadata\n", real->path);
 
 	while (cmp & (DIFF_OWNER | DIFF_GROUP)) {
 		if (cmp & DIFF_OWNER) {
 			msg(MSG_NORMAL, "\tchanging owner from %s to %s\n",
-			    left->path, left->group, right->group);
-			owner = getpwnam(right->owner);
+			    real->path, real->group, stored->group);
+			owner = getpwnam(stored->owner);
 			if (!owner) {
 				msg(MSG_DEBUG, "\tgetpwnam failed: %s\n",
 				    strerror(errno));
@@ -132,8 +132,8 @@ compare_fix(struct metaentry *left, struct metaentry *right, int cmp)
 
 		if (cmp & DIFF_GROUP) {
 			msg(MSG_NORMAL, "\tchanging group from %s to %s\n",
-			    left->path, left->group, right->group);
-			group = getgrnam(right->group);
+			    real->path, real->group, stored->group);
+			group = getgrnam(stored->group);
 			if (!group) {
 				msg(MSG_DEBUG, "\tgetgrnam failed: %s\n",
 				    strerror(errno));
@@ -142,7 +142,7 @@ compare_fix(struct metaentry *left, struct metaentry *right, int cmp)
 			gid = group->gr_gid;
 		}
 
-		if (lchown(left->path, uid, gid)) {
+		if (lchown(real->path, uid, gid)) {
 			msg(MSG_DEBUG, "\tlchown failed: %s\n",
 			    strerror(errno));
 			break;
@@ -152,46 +152,46 @@ compare_fix(struct metaentry *left, struct metaentry *right, int cmp)
 
 	if (cmp & DIFF_MODE) {
 		msg(MSG_NORMAL, "%s:\tchanging mode from 0%o to 0%o\n",
-		    left->path, left->mode, right->mode);
-		if (chmod(left->path, left->mode))
+		    real->path, real->mode, stored->mode);
+		if (chmod(real->path, real->mode))
 			msg(MSG_DEBUG, "\tchmod failed: %s\n", strerror(errno));
 	}
 
 	if (cmp & DIFF_MTIME) {
 		msg(MSG_NORMAL, "%s:\tchanging mtime from %ld to %ld\n",
-		    left->path, left->mtime, right->mtime);
+		    real->path, real->mtime, stored->mtime);
 		/* FIXME: Use utimensat here */
-		tbuf.actime = right->mtime;
-		tbuf.modtime = right->mtime;
-		if (utime(left->path, &tbuf)) {
+		tbuf.actime = stored->mtime;
+		tbuf.modtime = stored->mtime;
+		if (utime(real->path, &tbuf)) {
 			msg(MSG_DEBUG, "\tutime failed: %s\n", strerror(errno));
 			return;
 		}
 	}
 
 	if (cmp & DIFF_XATTR) {
-		for (i = 0; i < left->xattrs; i++) {
+		for (i = 0; i < real->xattrs; i++) {
 			/* Any attrs to remove? */
-			if (mentry_find_xattr(right, left, i) >= 0)
+			if (mentry_find_xattr(stored, real, i) >= 0)
 				continue;
 
 			msg(MSG_NORMAL, "%s:\tremoving xattr %s\n",
-			    left->path, left->xattr_names[i]);
-			if (lremovexattr(left->path, left->xattr_names[i]))
+			    real->path, real->xattr_names[i]);
+			if (lremovexattr(real->path, real->xattr_names[i]))
 				msg(MSG_DEBUG, "\tlremovexattr failed: %s\n",
 				    strerror(errno));
 		}
 
-		for (i = 0; i < right->xattrs; i++) {
+		for (i = 0; i < stored->xattrs; i++) {
 			/* Any xattrs to add? (on change they are removed above) */
-			if (mentry_find_xattr(left, right, i) >= 0)
+			if (mentry_find_xattr(real, stored, i) >= 0)
 				continue;
 
 			msg(MSG_NORMAL, "%s:\tadding xattr %s\n",
-			    right->path, right->xattr_names[i]);
-			if (lsetxattr(right->path, right->xattr_names[i], 
-				      right->xattr_values[i],
-				      right->xattr_lvalues[i], XATTR_CREATE))
+			    stored->path, stored->xattr_names[i]);
+			if (lsetxattr(stored->path, stored->xattr_names[i], 
+				      stored->xattr_values[i],
+				      stored->xattr_lvalues[i], XATTR_CREATE))
 				msg(MSG_DEBUG, "\tlsetxattr failed: %s\n",
 				    strerror(errno));
 		}
@@ -234,8 +234,8 @@ int
 main(int argc, char **argv, char **envp)
 {
 	int i, c;
-	struct metaentry *mhead = NULL;
-	struct metaentry *mfhead = NULL;
+	struct metaentry *lreal = NULL;
+	struct metaentry *lstored = NULL;
 	int action = 0;
 
 	/* Parse options */
@@ -248,7 +248,8 @@ main(int argc, char **argv, char **envp)
 			break;
 		switch (c) {
 		case 0:
-			if (!strcmp("verbose", long_options[option_index].name)) {
+			if (!strcmp("verbose",
+				    long_options[option_index].name)) {
 				adjust_verbosity(1);
 			} else if (!strcmp("quiet",
 					   long_options[option_index].name)) {
@@ -298,8 +299,8 @@ main(int argc, char **argv, char **envp)
 	/* Perform action */
 	switch (action) {
 	case ACTION_DIFF:
-		mentries_fromfile(&mfhead, METAFILE);
-		if (!mfhead) {
+		mentries_fromfile(&lstored, METAFILE);
+		if (!lstored) {
 			msg(MSG_CRITICAL, "Failed to load metadata from %s\n",
 			    METAFILE);
 			exit(EXIT_FAILURE);
@@ -307,40 +308,40 @@ main(int argc, char **argv, char **envp)
 
 		if (optind < argc) {
 			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &mhead);
+				mentries_recurse_path(argv[optind++], &lreal);
 		} else {
-			mentries_recurse_path(".", &mhead);
+			mentries_recurse_path(".", &lreal);
 		}
 
-		if (!mhead) {
+		if (!lreal) {
 			msg(MSG_CRITICAL,
 			    "Failed to load metadata from file system\n");
 			exit(EXIT_FAILURE);
 		}
 
-		mentries_compare(mhead, mfhead, compare_print, do_mtime);
+		mentries_compare(lreal, lstored, compare_print, do_mtime);
 		break;
 
 	case ACTION_SAVE:
 		if (optind < argc) {
 			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &mhead);
+				mentries_recurse_path(argv[optind++], &lreal);
 		} else {
-			mentries_recurse_path(".", &mhead);
+			mentries_recurse_path(".", &lreal);
 		}
 
-		if (!mhead) {
+		if (!lreal) {
 			msg(MSG_CRITICAL,
 			    "Failed to load metadata from file system\n");
 			exit(EXIT_FAILURE);
 		}
 
-		mentries_tofile(mhead, METAFILE);
+		mentries_tofile(lreal, METAFILE);
 		break;
 
 	case ACTION_APPLY:
-		mentries_fromfile(&mfhead, METAFILE);
-		if (!mfhead) {
+		mentries_fromfile(&lstored, METAFILE);
+		if (!lstored) {
 			msg(MSG_CRITICAL, "Failed to load metadata from %s\n",
 			    METAFILE);
 			exit(EXIT_FAILURE);
@@ -348,18 +349,18 @@ main(int argc, char **argv, char **envp)
 
 		if (optind < argc) {
 			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &mhead);
+				mentries_recurse_path(argv[optind++], &lreal);
 		} else {
-			mentries_recurse_path(".", &mhead);
+			mentries_recurse_path(".", &lreal);
 		}
 
-		if (!mhead) {
+		if (!lreal) {
 			msg(MSG_CRITICAL,
 			    "Failed to load metadata from file system\n");
 			exit(EXIT_FAILURE);
 		}
 
-		mentries_compare(mhead, mfhead, compare_fix, do_mtime);
+		mentries_compare(lreal, lstored, compare_fix, do_mtime);
 		break;
 
 	case ACTION_HELP:

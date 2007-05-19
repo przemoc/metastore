@@ -206,7 +206,7 @@ usage(const char *arg0, const char *message)
 		msg(MSG_CRITICAL, "%s: %s\n\n", arg0, msg);
 	msg(MSG_CRITICAL, "Usage: %s ACTION [OPTION...] [PATH...]\n\n", arg0);
 	msg(MSG_CRITICAL, "Where ACTION is one of:\n"
-	    "  -d, --diff\tShow differences between stored and real metadata\n"
+	    "  -c, --compare\tShow differences between stored and real metadata\n"
 	    "  -s, --save\tSave current metadata\n"
 	    "  -a, --apply\tApply stored metadata\n"
 	    "  -h, --help\tHelp message (this text)\n\n"

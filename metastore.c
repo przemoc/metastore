@@ -152,8 +152,8 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 
 	if (cmp & DIFF_MODE) {
 		msg(MSG_NORMAL, "%s:\tchanging mode from 0%o to 0%o\n",
-		    real->path, real->mode, stored->mode);
-		if (chmod(real->path, real->mode))
+		    real->path, real->mode & 07777, stored->mode & 07777);
+		if (chmod(real->path, stored->mode & 07777))
 			msg(MSG_DEBUG, "\tchmod failed: %s\n", strerror(errno));
 	}
 

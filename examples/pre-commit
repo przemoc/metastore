@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+# An example hook script to store metadata information using
+# metastore on each commit. A verification message with a list
+# of changes will first be shown and only if it is accepted will
+# the commit proceed.
+
+echo "Going to commit the following metadata changes" >&2
+metastore -c -m >&2
+echo -n "Ok to commit? (y/n): " >&2
+read -n1 REPLY
+echo ""
+
+if [ "$REPLY" != "y" ]; then
+	echo "Aborted" >&2
+	exit 1
+fi
+
+if ! metastore -s; then
+	echo "Failed to execute metastore -s" >&2
+	exit 1
+fi
+
+if [ ! -e ".metadata" ]; then
+	echo ".metadata missing" >&2
+	exit 1
+fi
+
+if ! git-add .metadata; then
+	echo "Failed to execute git-add .metadata" >&2
+	exit 1
+fi
+
+exit 0

@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# This script can be used instead of git-pull when updating a remote
+# repo to make sure the metadata matches what is stored in the repo.
+# It will do a git-pull, show a list of changes to be made to the metadata,
+# and after getting confirmation, apply the changes.
+
+DO_MTIME=yes
+umask 0077
+
+
+if ! git-pull; then
+	echo "Failed to execute git-pull" >&2
+	exit 1
+fi
+
+if [ ! -e ".metadata" ]; then
+        echo ".metadata missing" >&2
+        exit 1
+fi
+
+echo "Going to apply the following metadata changes" >&2
+if [ "$DO_MTIME" = "yes" ]; then
+	metastore -c -m >&2
+else
+	metastore -c >&2
+fi
+
+echo -n "Ok to apply? (y/n): " >&2
+read -n1 REPLY
+echo ""
+
+if [ "$REPLY" != "y" ]; then
+        echo "Aborted" >&2
+        exit 1
+fi
+
+if [ "$DO_MTIME" = "yes" ]; then
+	flags="-a -m"
+else
+	flags="-a"
+fi
+
+if ! metastore $flags; then
+        echo "Failed to execute metastore $flags" >&2
+        exit 1
+fi
+
+exit 0

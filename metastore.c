@@ -159,7 +159,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 
 	/* FIXME: Use utimensat here, or even better - lutimensat */
 	if ((cmp & DIFF_MTIME) && S_ISLNK(real->mode)) {
-		msg(MSG_NORMAL, "%s:\tsymlink, not changing mtime", real->path);
+		msg(MSG_NORMAL, "%s:\tsymlink, not changing mtime\n", real->path);
 	} else if (cmp & DIFF_MTIME) {
 		msg(MSG_NORMAL, "%s:\tchanging mtime from %ld to %ld\n",
 		    real->path, real->mtime, stored->mtime);

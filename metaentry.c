@@ -37,7 +37,6 @@
 #include "metaentry.h"
 #include "utils.h"
 
-#if 0
 /* Free's a metaentry and all its parameters */
 static void
 mentry_free(struct metaentry *m)
@@ -62,7 +61,6 @@ mentry_free(struct metaentry *m)
 
 	free(m);
 }
-#endif
 
 /* Allocates an empty metahash table */
 static struct metahash *
@@ -239,6 +237,7 @@ mentry_create(const char *path)
 	if (lsize < 0) {
 		msg(MSG_ERROR, "listxattr failed for %s: %s\n",
 		    path, strerror(errno));
+		free(list);
 		return NULL;
 	}
 
@@ -267,6 +266,8 @@ mentry_create(const char *path)
 		if (vsize < 0) {
 			msg(MSG_ERROR, "getxattr failed for %s: %s\n",
 			    path, strerror(errno));
+			free(list);
+			mentry_free(mentry);
 			return NULL;
 		}
 
@@ -277,11 +278,14 @@ mentry_create(const char *path)
 		if (vsize < 0) {
 			msg(MSG_ERROR, "getxattr failed for %s: %s\n",
 			    path, strerror(errno));
+			free(list);
+			mentry_free(mentry);
 			return NULL;
 		}
 		i++;
 	}
 
+	free(list);
 	return mentry;
 }
 

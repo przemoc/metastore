@@ -25,8 +25,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <pwd.h>
-#include <grp.h>
 #include <attr/xattr.h>
 #include <limits.h>
 #include <dirent.h>
@@ -203,14 +201,14 @@ mentry_create(const char *path)
 		return NULL;
 	}
 
-	pbuf = getpwuid(sbuf.st_uid);
+	pbuf = xgetpwuid(sbuf.st_uid);
 	if (!pbuf) {
 		msg(MSG_ERROR, "getpwuid failed for %i: %s\n",
 		    (int)sbuf.st_uid, strerror(errno));
 		return NULL;
 	}
 
-	gbuf = getgrgid(sbuf.st_gid);
+	gbuf = xgetgrgid(sbuf.st_gid);
 	if (!gbuf) {
 		msg(MSG_ERROR, "getgrgid failed for %i: %s\n",
 		    (int)sbuf.st_gid, strerror(errno));

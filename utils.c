@@ -26,6 +26,9 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <grp.h>
+#include <pwd.h>
 
 #include "utils.h"
 
@@ -180,5 +183,121 @@ char *
 read_string(char **from, const char *max)
 {
 	return read_binary_string(from, strlen(*from) + 1, max);
+}
+
+/* For group caching */
+static struct group *gtable = NULL;
+
+/* Initial setup of the gid table */
+static void
+create_group_table()
+{
+	struct group *tmp;
+	int count, index;
+
+	for (count = 0; getgrent(); count++) /* Do nothing */;
+
+	gtable = xmalloc(sizeof(struct group) * (count + 1));
+	memset(gtable, 0, sizeof(struct group) * (count + 1));
+	setgrent();
+
+	for (index = 0; (tmp = getgrent()) && index < count; index++) {
+		gtable[index].gr_gid = tmp->gr_gid;
+		gtable[index].gr_name = xstrdup(tmp->gr_name);
+	}
+
+	endgrent();
+}
+
+/* Caching version of getgrnam */
+struct group *
+xgetgrnam(const char *name)
+{
+	int i;
+
+	if (!gtable)
+		create_group_table();
+
+	for (i = 0; gtable[i].gr_name; i++) {
+		if (!strcmp(name, gtable[i].gr_name))
+			return &(gtable[i]);
+	}
+
+	return NULL;
+}
+
+/* Caching version of getgrgid */
+struct group *
+xgetgrgid(gid_t gid)
+{
+	int i;
+
+	if (!gtable)
+		create_group_table();
+
+	for (i = 0; gtable[i].gr_name; i++) {
+		if (gtable[i].gr_gid == gid)
+			return &(gtable[i]);
+	}
+
+	return NULL;
+}
+
+/* For user caching */
+static struct passwd *ptable = NULL;
+
+/* Initial setup of the passwd table */
+static void
+create_passwd_table()
+{
+	struct passwd *tmp;
+	int count, index;
+
+	for (count = 0; getpwent(); count++) /* Do nothing */;
+
+	ptable = xmalloc(sizeof(struct passwd) * (count + 1));
+	memset(ptable, 0, sizeof(struct passwd) * (count + 1));
+	setpwent();
+
+	for (index = 0; (tmp = getpwent()) && index < count; index++) {
+		ptable[index].pw_uid = tmp->pw_uid;
+		ptable[index].pw_name = xstrdup(tmp->pw_name);
+	}
+
+	endpwent();
+}
+
+/* Caching version of getpwnam */
+struct passwd *
+xgetpwnam(const char *name)
+{
+	int i;
+
+	if (!ptable)
+		create_passwd_table();
+
+	for (i = 0; ptable[i].pw_name; i++) {
+		if (!strcmp(name, ptable[i].pw_name))
+			return &(ptable[i]);
+	}
+
+	return NULL;
+}
+
+/* Caching version of getpwuid */
+struct passwd *
+xgetpwuid(uid_t uid)
+{
+	int i;
+
+	if (!ptable)
+		create_passwd_table();
+
+	for (i = 0; ptable[i].pw_name; i++) {
+		if (ptable[i].pw_uid == uid)
+			return &(ptable[i]);
+	}
+
+	return NULL;
 }
 

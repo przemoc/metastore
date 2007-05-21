@@ -20,8 +20,6 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <pwd.h>
-#include <grp.h>
 #include <getopt.h>
 #include <utime.h>
 #include <attr/xattr.h>
@@ -121,7 +119,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 		if (cmp & DIFF_OWNER) {
 			msg(MSG_NORMAL, "\tchanging owner from %s to %s\n",
 			    real->path, real->group, stored->group);
-			owner = getpwnam(stored->owner);
+			owner = xgetpwnam(stored->owner);
 			if (!owner) {
 				msg(MSG_DEBUG, "\tgetpwnam failed: %s\n",
 				    strerror(errno));
@@ -133,7 +131,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 		if (cmp & DIFF_GROUP) {
 			msg(MSG_NORMAL, "\tchanging group from %s to %s\n",
 			    real->path, real->group, stored->group);
-			group = getgrnam(stored->group);
+			group = xgetgrnam(stored->group);
 			if (!group) {
 				msg(MSG_DEBUG, "\tgetgrnam failed: %s\n",
 				    strerror(errno));

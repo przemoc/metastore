@@ -24,6 +24,10 @@
 #include <unistd.h>
 /* For FILE */
 #include <stdio.h>
+/* For struct passwd */
+#include <pwd.h>
+/* For struct group */
+#include <grp.h>
 
 /* Adjusts the verbosity level for msg() */
 void adjust_verbosity(int adj);
@@ -68,4 +72,16 @@ char *read_binary_string(char **from, size_t len, const char *max);
 
 /* Reads a normal C string from a file */
 char *read_string(char **from, const char *max);
+
+/* Caching version of getgrnam */
+struct group *xgetgrnam(const char *name);
+
+/* Caching version of getgrgid */
+struct group *xgetgrgid(gid_t gid);
+
+/* Caching version of getpwnam */
+struct passwd *xgetpwnam(const char *name);
+
+/* Caching version of getpwuid */
+struct passwd *xgetpwuid(uid_t uid);
 

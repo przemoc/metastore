@@ -32,19 +32,3 @@
 #define ACTION_SAVE  0x02
 #define ACTION_APPLY 0x04
 #define ACTION_HELP  0x08
-
-/* Data structure to hold all metadata for a file */
-struct metaentry {
-	struct metaentry *next;
-	char *path;
-	char *owner;
-	char *group;
-        mode_t mode;
-	time_t mtime;
-        long mtimensec;
-	unsigned int xattrs;
-	char **xattr_names;
-	ssize_t *xattr_lvalues;
-	char **xattr_values;
-};
-

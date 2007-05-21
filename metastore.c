@@ -43,13 +43,8 @@ static int do_mtime = 0;
 static void
 compare_print(struct metaentry *real, struct metaentry *stored, int cmp)
 {
-	if (!real) {
-		msg(MSG_QUIET, "%s:\tremoved\n", stored->path);
-		return;
-	}
-
-	if (!stored) {
-		msg(MSG_QUIET, "%s:\tadded\n", real->path);
+	if (!real && !stored) {
+		msg(MSG_ERROR, "%s called with incorrect arguments\n", __FUNCTION__);
 		return;
 	}
 
@@ -58,7 +53,12 @@ compare_print(struct metaentry *real, struct metaentry *stored, int cmp)
 		return;
 	}
 
-	msg(MSG_QUIET, "%s:\t", real->path);
+	msg(MSG_QUIET, "%s:\t", real ? real->path : stored->path);
+
+	if (cmp & DIFF_ADDED)
+		msg(MSG_QUIET, "added ", real->path);
+	if (cmp & DIFF_DELE)
+		msg(MSG_QUIET, "removed ", stored->path);
 	if (cmp & DIFF_OWNER)
 		msg(MSG_QUIET, "owner ");
 	if (cmp & DIFF_GROUP)
@@ -237,8 +237,8 @@ int
 main(int argc, char **argv, char **envp)
 {
 	int i, c;
-	struct metaentry *lreal = NULL;
-	struct metaentry *lstored = NULL;
+	struct metahash *real = NULL;
+	struct metahash *stored = NULL;
 	int action = 0;
 
 	/* Parse options */
@@ -302,8 +302,8 @@ main(int argc, char **argv, char **envp)
 	/* Perform action */
 	switch (action) {
 	case ACTION_DIFF:
-		mentries_fromfile(&lstored, METAFILE);
-		if (!lstored) {
+		mentries_fromfile(&stored, METAFILE);
+		if (!stored) {
 			msg(MSG_CRITICAL, "Failed to load metadata from %s\n",
 			    METAFILE);
 			exit(EXIT_FAILURE);
@@ -311,40 +311,40 @@ main(int argc, char **argv, char **envp)
 
 		if (optind < argc) {
 			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &lreal);
+				mentries_recurse_path(argv[optind++], &real);
 		} else {
-			mentries_recurse_path(".", &lreal);
+			mentries_recurse_path(".", &real);
 		}
 
-		if (!lreal) {
+		if (!real) {
 			msg(MSG_CRITICAL,
 			    "Failed to load metadata from file system\n");
 			exit(EXIT_FAILURE);
 		}
 
-		mentries_compare(lreal, lstored, compare_print, do_mtime);
+		mentries_compare(real, stored, compare_print, do_mtime);
 		break;
 
 	case ACTION_SAVE:
 		if (optind < argc) {
 			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &lreal);
+				mentries_recurse_path(argv[optind++], &real);
 		} else {
-			mentries_recurse_path(".", &lreal);
+			mentries_recurse_path(".", &real);
 		}
 
-		if (!lreal) {
+		if (!real) {
 			msg(MSG_CRITICAL,
 			    "Failed to load metadata from file system\n");
 			exit(EXIT_FAILURE);
 		}
 
-		mentries_tofile(lreal, METAFILE);
+		mentries_tofile(real, METAFILE);
 		break;
 
 	case ACTION_APPLY:
-		mentries_fromfile(&lstored, METAFILE);
-		if (!lstored) {
+		mentries_fromfile(&stored, METAFILE);
+		if (!stored) {
 			msg(MSG_CRITICAL, "Failed to load metadata from %s\n",
 			    METAFILE);
 			exit(EXIT_FAILURE);
@@ -352,18 +352,18 @@ main(int argc, char **argv, char **envp)
 
 		if (optind < argc) {
 			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &lreal);
+				mentries_recurse_path(argv[optind++], &real);
 		} else {
-			mentries_recurse_path(".", &lreal);
+			mentries_recurse_path(".", &real);
 		}
 
-		if (!lreal) {
+		if (!real) {
 			msg(MSG_CRITICAL,
 			    "Failed to load metadata from file system\n");
 			exit(EXIT_FAILURE);
 		}
 
-		mentries_compare(lreal, lstored, compare_fix, do_mtime);
+		mentries_compare(real, stored, compare_fix, do_mtime);
 		break;
 
 	case ACTION_HELP:

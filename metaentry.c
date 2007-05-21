@@ -66,6 +66,29 @@ mentry_free(struct metaentry *m)
 }
 #endif
 
+/* Allocates an empty metahash table */
+static struct metahash *
+mhash_alloc()
+{
+	struct metahash *mhash;
+	mhash = xmalloc(sizeof(struct metahash));
+	memset(mhash, 0, sizeof(struct metahash));
+	return mhash;
+}
+
+/* Generates a hash key (using djb2) */
+static unsigned int
+hash(const char *str)
+{
+	unsigned int hash = 5381;
+	int c;
+
+	while ((c = *str++))
+		hash = ((hash << 5) + hash) + c;
+
+	return hash % HASH_INDEXES;
+}
+
 /* Allocates an empty metaentry */
 static struct metaentry *
 mentry_alloc()
@@ -76,39 +99,43 @@ mentry_alloc()
 	return mentry;
 }
 
+/* Does a bisect search for the closest match in a metaentry list */
+struct metaentry *
+mentry_find(const char *path, struct metahash *mhash)
+{
+	struct metaentry *base;
+	unsigned int key;
+
+	if (!mhash) {
+		msg(MSG_ERROR, "%s called with empty hash table\n", __FUNCTION__);
+		return NULL;
+	}
+
+	key = hash(path);
+	for (base = mhash->bucket[key]; base; base = base->next) {
+		if (!strcmp(base->path, path))
+			return base;
+	}
+
+	return NULL;
+}
+
 /* Inserts a metaentry into a metaentry list */
 static void
-mentry_insert(struct metaentry *mentry, struct metaentry **mlist)
+mentry_insert(struct metaentry *mentry, struct metahash *mhash)
 {
-	struct metaentry *prev;
-	struct metaentry *curr;
-	int comp;
+	struct metaentry *base;
+	unsigned int key;
 
-	if (!(*mlist)) {
-		*mlist = mentry;
+	key = hash(mentry->path);
+	if (!mhash->bucket[key]) {
+		mhash->bucket[key] = mentry;
 		return;
 	}
 
-	if (strcmp(mentry->path, (*mlist)->path) < 0) {
-		mentry->next = *mlist;
-		*mlist = mentry;
-		return;
-	}
-
-	prev = *mlist;
-	for (curr = prev->next; curr; curr = curr->next) {
-		comp = strcmp(mentry->path, curr->path);
-		if (!comp)
-			/* Two matching paths */
-			return;
-		if (comp < 0)
-			break;
-		prev = curr;
-	}
-
-	if (curr)
-		mentry->next = curr;
-	prev->next = mentry;
+	for (base = mhash->bucket[key]; base->next; base = base->next)
+		/* Do nothing */;
+	base->next = mentry;
 }
 
 #ifdef DEBUG
@@ -145,17 +172,16 @@ mentry_print(const struct metaentry *mentry)
 
 /* Prints all metaentries in a metaentry list */
 static void
-mentries_print(const struct metaentry *mlist)
+mentries_print(const struct metahash *mhash)
 {
 	const struct metaentry *mentry;
-	int i;
+	int index;
 
-	for (mentry = mlist; mentry; mentry = mentry->next) {
-		i++;
-		mentry_print(mentry);
-	}
+	for (index = 0; index < HASH_INDEXES; index++)
+		for (mentry = mhash->bucket[i]; mentry; mentry = mentry->next)
+			mentry_print(mentry);
 
-	msg(MSG_DEBUG, "%i entries in total\n", i);
+	msg(MSG_DEBUG, "%i entries in total\n", mhash->count);
 }
 #endif
 
@@ -288,7 +314,7 @@ normalize_path(const char *orig)
 
 /* Internal function for the recursive path walk */
 static void
-mentries_recurse(const char *path, struct metaentry **mlist)
+mentries_recurse(const char *path, struct metahash *mhash)
 {
 	struct stat sbuf;
 	struct metaentry *mentry;
@@ -309,7 +335,7 @@ mentries_recurse(const char *path, struct metaentry **mlist)
 	if (!mentry)
 		return;
 
-	mentry_insert(mentry, mlist);
+	mentry_insert(mentry, mhash);
 
 	if (S_ISDIR(sbuf.st_mode)) {
 		dir = opendir(path);
@@ -326,7 +352,7 @@ mentries_recurse(const char *path, struct metaentry **mlist)
 				continue;
 			snprintf(tpath, PATH_MAX, "%s/%s", path, dent->d_name);
 			tpath[PATH_MAX - 1] = '\0';
-			mentries_recurse(tpath, mlist);
+			mentries_recurse(tpath, mhash);
 		}
 
 		closedir(dir);
@@ -335,20 +361,23 @@ mentries_recurse(const char *path, struct metaentry **mlist)
 
 /* Recurses opath and adds metadata entries to the metaentry list */
 void
-mentries_recurse_path(const char *opath, struct metaentry **mlist)
+mentries_recurse_path(const char *opath, struct metahash **mhash)
 {
 	char *path = normalize_path(opath);
-	mentries_recurse(path, mlist);
+
+	if (!(*mhash))
+		*mhash = mhash_alloc();
+	mentries_recurse(path, *mhash);
 	free(path);
 }
 
-/* Stores a metaentry list to a file */
+/* Stores metaentries to a file */
 void 
-mentries_tofile(const struct metaentry *mlist, const char *path)
+mentries_tofile(const struct metahash *mhash, const char *path)
 {
 	FILE *to;
 	const struct metaentry *mentry;
-	int i;
+	int key, i;
 
 	to = fopen(path, "w");
 	if (!to) {
@@ -360,19 +389,21 @@ mentries_tofile(const struct metaentry *mlist, const char *path)
 	write_binary_string(SIGNATURE, SIGNATURELEN, to);
 	write_binary_string(VERSION, VERSIONLEN, to);
 
-	for (mentry = mlist; mentry; mentry = mentry->next) {
-		write_string(mentry->path, to);
-		write_string(mentry->owner, to);
-		write_string(mentry->group, to);
-		write_int((uint64_t)mentry->mtime, 8, to);
-		write_int((uint64_t)mentry->mtimensec, 8, to);
-		write_int((uint64_t)mentry->mode, 2, to);
-		write_int(mentry->xattrs, 4, to);
-		for (i = 0; i < mentry->xattrs; i++) {
-			write_string(mentry->xattr_names[i], to);
-			write_int(mentry->xattr_lvalues[i], 4, to);
-			write_binary_string(mentry->xattr_values[i],
-					    mentry->xattr_lvalues[i], to);
+	for (key = 0; key < HASH_INDEXES; key++) {		
+		for (mentry = mhash->bucket[key]; mentry; mentry = mentry->next) {
+			write_string(mentry->path, to);
+			write_string(mentry->owner, to);
+			write_string(mentry->group, to);
+			write_int((uint64_t)mentry->mtime, 8, to);
+			write_int((uint64_t)mentry->mtimensec, 8, to);
+			write_int((uint64_t)mentry->mode, 2, to);
+			write_int(mentry->xattrs, 4, to);
+			for (i = 0; i < mentry->xattrs; i++) {
+				write_string(mentry->xattr_names[i], to);
+				write_int(mentry->xattr_lvalues[i], 4, to);
+				write_binary_string(mentry->xattr_values[i],
+						    mentry->xattr_lvalues[i], to);
+			}
 		}
 	}
 
@@ -381,7 +412,7 @@ mentries_tofile(const struct metaentry *mlist, const char *path)
 
 /* Creates a metaentry list from a file */
 void
-mentries_fromfile(struct metaentry **mlist, const char *path)
+mentries_fromfile(struct metahash **mhash, const char *path)
 {
 	struct metaentry *mentry;
 	char *mmapstart;
@@ -390,6 +421,9 @@ mentries_fromfile(struct metaentry **mlist, const char *path)
 	int fd;
 	struct stat sbuf;
 	int i;
+
+	if (!(*mhash))
+		*mhash = mhash_alloc();
 
 	fd = open(path, O_RDONLY);
 	if (fd < 0) {
@@ -448,7 +482,7 @@ mentries_fromfile(struct metaentry **mlist, const char *path)
 		mentry->xattrs = (unsigned int)read_int(&ptr, 4, max);
 
 		if (!mentry->xattrs) {
-			mentry_insert(mentry, mlist);
+			mentry_insert(mentry, *mhash);
 			continue;
 		}
 
@@ -468,26 +502,12 @@ mentries_fromfile(struct metaentry **mlist, const char *path)
 						   mentry->xattr_lvalues[i],
 						   max);
 		}
-		mentry_insert(mentry, mlist);
+		mentry_insert(mentry, *mhash);
 	}
 
 out:
 	munmap(mmapstart, sbuf.st_size);
 	close(fd);
-}
-
-/* Finds a metaentry matching path */
-static struct metaentry *
-mentry_find(const char *path, struct metaentry *mlist)
-{
-	struct metaentry *m;
-
-	/* FIXME - We can do a bisect search here instead */
-	for (m = mlist; m; m = m->next) {
-		if (!strcmp(path, m->path))
-			return m;
-	}
-	return NULL;
 }
 
 /* Searches haystack for an xattr matching xattr number n in needle */
@@ -570,33 +590,36 @@ mentry_compare(struct metaentry *left, struct metaentry *right, int do_mtime)
 
 /* Compares lists of real and stored metadata and calls pfunc for each */
 void
-mentries_compare(struct metaentry *mlistreal,
-		 struct metaentry *mliststored,
+mentries_compare(struct metahash *mhashreal,
+		 struct metahash *mhashstored,
 		 void (*pfunc)
 		 (struct metaentry *real, struct metaentry *stored, int do_mtime),
 		 int do_mtime)
 {
 	struct metaentry *real, *stored;
-	int cmp;
+	int key;
 
-	if (!mlistreal || !mliststored) {
+	if (!mhashreal || !mhashstored) {
 		msg(MSG_ERROR, "%s called with empty list\n", __FUNCTION__);
 		return;
 	}
 
-	for (real = mlistreal; real; real = real->next) {
-		stored = mentry_find(real->path, mliststored);
-		if (!stored)
-			cmp = DIFF_ADDED;
-		else
-			cmp = mentry_compare(real, stored, do_mtime);
-		pfunc(real, stored, cmp);
-	}
+	for (key = 0; key < HASH_INDEXES; key++) {
+		for (real = mhashreal->bucket[key]; real; real = real->next) {
+			stored = mentry_find(real->path, mhashstored);
 
-	for (stored = mliststored; stored; stored = stored->next) {
-		real = mentry_find(stored->path, mlistreal);
-		if (!real)
-			pfunc(real, stored, DIFF_DELE);
+			if (!stored)
+				pfunc(real, NULL, DIFF_ADDED);
+			else
+				pfunc(real, stored, mentry_compare(real, stored, do_mtime));
+		}
+
+		for (stored = mhashstored->bucket[key]; stored; stored = stored->next) {
+			real = mentry_find(stored->path, mhashreal);
+
+			if (!real)
+				pfunc(NULL, stored, DIFF_DELE);
+		}
 	}
 }
 

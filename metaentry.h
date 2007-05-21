@@ -18,14 +18,37 @@
  *
  */
 
+/* Data structure to hold all metadata for a file */
+struct metaentry {
+	struct metaentry *next;
+	char *path;
+	char *owner;
+	char *group;
+        mode_t mode;
+	time_t mtime;
+        long mtimensec;
+	unsigned int xattrs;
+	char **xattr_names;
+	ssize_t *xattr_lvalues;
+	char **xattr_values;
+};
+
+#define HASH_INDEXES 1024
+
+/* Data structure to hold a number of metadata entries */
+struct metahash {
+        struct metaentry *bucket[HASH_INDEXES];
+        unsigned int count;
+};
+
 /* Recurses opath and adds metadata entries to the metaentry list */
-void mentries_recurse_path(const char *opath, struct metaentry **mlist);
+void mentries_recurse_path(const char *opath, struct metahash **mhash);
 
 /* Stores a metaentry list to a file */
-void mentries_tofile(const struct metaentry *mlist, const char *path);
+void mentries_tofile(const struct metahash *mhash, const char *path);
 
 /* Creates a metaentry list from a file */
-void mentries_fromfile(struct metaentry **mlist, const char *path);
+void mentries_fromfile(struct metahash **mhash, const char *path);
 
 /* Searches haystack for an xattr matching xattr number n in needle */
 int mentry_find_xattr(struct metaentry *haystack,
@@ -43,8 +66,8 @@ int mentry_find_xattr(struct metaentry *haystack,
 #define DIFF_DELE  0x80
 
 /* Compares lists of real and stored metadata and calls pfunc for each */
-void mentries_compare(struct metaentry *mlistreal,
-                      struct metaentry *mliststored,
+void mentries_compare(struct metahash *mhashreal,
+                      struct metahash *mhashstored,
                       void (*pfunc)(struct metaentry *real,
                                     struct metaentry *stored,
                                     int cmp),

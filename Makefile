@@ -18,7 +18,7 @@
 # Generic settings
 #
 CC              = gcc
-CFLAGS          = -g -Wall -D_FILE_OFFSET_BITS=64
+CFLAGS          = -g -Wall -D_FILE_OFFSET_BITS=64 -O2
 LDFLAGS         =
 INCLUDES        =
 INSTALL         = install -c

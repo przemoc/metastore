@@ -120,18 +120,11 @@ mentry_find(const char *path, struct metahash *mhash)
 static void
 mentry_insert(struct metaentry *mentry, struct metahash *mhash)
 {
-	struct metaentry *base;
 	unsigned int key;
 
 	key = hash(mentry->path);
-	if (!mhash->bucket[key]) {
-		mhash->bucket[key] = mentry;
-		return;
-	}
-
-	for (base = mhash->bucket[key]; base->next; base = base->next)
-		/* Do nothing */;
-	base->next = mentry;
+	mentry->next = mhash->bucket[key];
+	mhash->bucket[key] = mentry;
 }
 
 #ifdef DEBUG

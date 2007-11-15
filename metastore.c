@@ -203,7 +203,7 @@ static void
 usage(const char *arg0, const char *message)
 {
 	if (message)
-		msg(MSG_CRITICAL, "%s: %s\n\n", arg0, msg);
+		msg(MSG_CRITICAL, "%s: %s\n\n", arg0, message);
 	msg(MSG_CRITICAL, "Usage: %s ACTION [OPTION...] [PATH...]\n\n", arg0);
 	msg(MSG_CRITICAL, "Where ACTION is one of:\n"
 	    "  -c, --compare\tShow differences between stored and real metadata\n"

@@ -194,15 +194,15 @@ mentry_create(const char *path)
 
 	pbuf = xgetpwuid(sbuf.st_uid);
 	if (!pbuf) {
-		msg(MSG_ERROR, "getpwuid failed for %i: %s\n",
-		    (int)sbuf.st_uid, strerror(errno));
+		msg(MSG_ERROR, "getpwuid failed for %s: uid %i not found\n",
+		    path, (int)sbuf.st_uid);
 		return NULL;
 	}
 
 	gbuf = xgetgrgid(sbuf.st_gid);
 	if (!gbuf) {
-		msg(MSG_ERROR, "getgrgid failed for %i: %s\n",
-		    (int)sbuf.st_gid, strerror(errno));
+		msg(MSG_ERROR, "getgrgid failed for %s: gid %i not found\n",
+		    path, (int)sbuf.st_gid);
 		return NULL;
 	}
 

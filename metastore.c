@@ -31,9 +31,33 @@
 #include "utils.h"
 #include "metaentry.h"
 
-/* Used to signal whether mtimes should be corrected */
-static int do_mtime = 0;
+/* Used to indicate whether mtimes should be corrected */
+static bool do_mtime = false;
 
+/* Used to indicate whether empty dirs should be recreated */
+static bool do_emptydirs = false;
+
+/* Used to create lists of dirs / other files which are missing in the fs */
+static struct metaentry *missingdirs = NULL;
+static struct metaentry *missingothers = NULL;
+
+/*
+ * Inserts an entry in a linked list ordered by pathlen 
+ */
+static void
+insert_entry_plist(struct metaentry **list, struct metaentry *entry)
+{
+	struct metaentry **parent;
+
+	for (parent = list; *parent; parent = &((*parent)->list)) {
+		if ((*parent)->pathlen > entry->pathlen)
+			break;
+	}
+
+	entry->list = *parent;
+	*parent = entry;
+}
+	
 /*
  * Prints differences between real and stored actual metadata
  * - for use in mentries_compare
@@ -93,6 +117,11 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 	}
 
 	if (!real) {
+		if (S_ISDIR(stored->mode))
+			insert_entry_plist(&missingdirs, stored);
+		else
+			insert_entry_plist(&missingothers, stored);
+
 		msg(MSG_NORMAL, "%s:\tremoved\n", stored->path);
 		return;
 	}
@@ -117,7 +146,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 
 	while (cmp & (DIFF_OWNER | DIFF_GROUP)) {
 		if (cmp & DIFF_OWNER) {
-			msg(MSG_NORMAL, "\tchanging owner from %s to %s\n",
+			msg(MSG_NORMAL, "%s:\tchanging owner from %s to %s\n",
 			    real->path, real->group, stored->group);
 			owner = xgetpwnam(stored->owner);
 			if (!owner) {
@@ -129,7 +158,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 		}
 
 		if (cmp & DIFF_GROUP) {
-			msg(MSG_NORMAL, "\tchanging group from %s to %s\n",
+			msg(MSG_NORMAL, "%s:\tchanging group from %s to %s\n",
 			    real->path, real->group, stored->group);
 			group = xgetgrnam(stored->group);
 			if (!group) {
@@ -198,6 +227,101 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 	}
 }
 
+/*
+ * Tries to fix any empty dirs which are missing by recreating them.
+ * An "empty" dir is one which either:
+ *  - is empty; or
+ *  - only contained empty dirs
+ */
+static void
+fixup_emptydirs(struct metahash *real, struct metahash *stored)
+{
+	struct metaentry *entry;
+	struct metaentry *cur;
+	struct metaentry **parent;
+	char *bpath;
+	char *delim;
+	size_t blen;
+	struct metaentry *new;
+
+	if (!missingdirs)
+		return;
+	msg(MSG_DEBUG, "\nAttempting to recreate missing dirs\n");
+
+	/* If directory x/y is missing, but file x/y/z is also missing,
+	 * we should prune directory x/y from the list of directories to
+	 * recreate since the deletition of x/y is likely to be genuine
+	 * (as opposed to empty dir pruning like git/cvs does).
+	 *
+	 * Also, if file x/y/z is missing, any child directories of
+	 * x/y should be pruned as they are probably also intentionally
+	 * removed.
+	 */
+
+	msg(MSG_DEBUG, "List of candidate dirs:\n");
+	for (cur = missingdirs; cur; cur = cur->list)
+		msg(MSG_DEBUG, " %s\n", cur->path);
+
+	for (entry = missingothers; entry; entry = entry->list) {
+		msg(MSG_DEBUG, "Pruning using file %s\n", entry->path);
+		bpath = xstrdup(entry->path);
+		delim = strrchr(bpath, '/');
+		if (!delim) {
+			msg(MSG_NORMAL, "No delimiter found in %s\n", bpath);
+			free(bpath);
+			continue;
+		}
+		*delim = '\0';
+
+		parent = &missingdirs;
+		for (cur = *parent; cur; cur = cur->list) {
+			if (strcmp(cur->path, bpath)) {
+				parent = &cur->list;
+				continue;
+			}
+
+			msg(MSG_DEBUG, "Prune phase 1 - %s\n", cur->path);
+			*parent = cur->list;
+		}
+
+		/* Now also prune subdirs of the base dir */
+		*delim++ = '/';
+		*delim = '\0';
+		blen = strlen(bpath);
+
+		parent = &missingdirs;
+		for (cur = *parent; cur; cur = cur->list) {
+			if (strncmp(cur->path, bpath, blen)) {
+				parent = &cur->list;
+				continue;
+			}
+
+			msg(MSG_DEBUG, "Prune phase 2 - %s\n", cur->path);
+			*parent = cur->list;
+		}
+
+		free(bpath);
+	}
+	msg(MSG_DEBUG, "\n");
+
+	for (cur = missingdirs; cur; cur = cur->list) {
+		msg(MSG_QUIET, "%s:\trecreating...", cur->path);
+		if (mkdir(cur->path, cur->mode)) {
+			msg(MSG_QUIET, "failed (%s)\n", strerror(errno));
+			continue;
+		}
+		msg(MSG_QUIET, "ok\n");
+
+		new = mentry_create(cur->path);
+		if (!new) {
+			msg(MSG_QUIET, "Failed to get metadata for %s\n");
+			continue;
+		}
+
+		compare_fix(new, cur, mentry_compare(new, cur, do_mtime));
+	}
+}
+
 /* Prints usage message and exits */
 static void
 usage(const char *arg0, const char *message)
@@ -206,14 +330,16 @@ usage(const char *arg0, const char *message)
 		msg(MSG_CRITICAL, "%s: %s\n\n", arg0, message);
 	msg(MSG_CRITICAL, "Usage: %s ACTION [OPTION...] [PATH...]\n\n", arg0);
 	msg(MSG_CRITICAL, "Where ACTION is one of:\n"
-	    "  -c, --compare\tShow differences between stored and real metadata\n"
-	    "  -s, --save\tSave current metadata\n"
-	    "  -a, --apply\tApply stored metadata\n"
-	    "  -h, --help\tHelp message (this text)\n\n"
-	    "Valid OPTIONS are (can be given more than once):\n"
-	    "  -v, --verbose\tPrint more verbose messages\n"
-	    "  -q, --quiet\tPrint less verbose messages\n"
-	    "  -m, --mtime\tAlso take mtime into account for diff or apply\n");
+	    "  -c, --compare\t\tShow differences between stored and real metadata\n"
+	    "  -s, --save\t\tSave current metadata\n"
+	    "  -a, --apply\t\tApply stored metadata\n"
+	    "  -h, --help\t\tHelp message (this text)\n\n"
+	    "Valid OPTIONS are:\n"
+	    "  -v, --verbose\t\tPrint more verbose messages\n"
+	    "  -q, --quiet\t\tPrint less verbose messages\n"
+	    "  -m, --mtime\t\tAlso take mtime into account for diff or apply\n"
+	    "  -e, --empty-dirs\tRecreate missing empty directories (experimental)\n"
+	    );
 
 	exit(message ? EXIT_FAILURE : EXIT_SUCCESS);
 }
@@ -227,6 +353,7 @@ static struct option long_options[] = {
 	{"verbose", 0, 0, 0},
 	{"quiet", 0, 0, 0},
 	{"mtime", 0, 0, 0},
+	{"empty-dirs", 0, 0, 0},
 	{0, 0, 0, 0}
 };
 
@@ -243,7 +370,7 @@ main(int argc, char **argv, char **envp)
 	i = 0;
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "csahvqm",
+		c = getopt_long(argc, argv, "csahvqme",
 				long_options, &option_index);
 		if (c == -1)
 			break;
@@ -257,7 +384,10 @@ main(int argc, char **argv, char **envp)
 				adjust_verbosity(-1);
 			} else if (!strcmp("mtime",
 					   long_options[option_index].name)) {
-				do_mtime = 1;
+				do_mtime = true;
+			} else if (!strcmp("empty-dirs",
+					   long_options[option_index].name)) {
+				do_emptydirs = true;
 			} else {
 				action |= (1 << option_index);
 				i++;
@@ -286,7 +416,10 @@ main(int argc, char **argv, char **envp)
 			adjust_verbosity(-1);
 			break;
 		case 'm':
-			do_mtime = 1;
+			do_mtime = true;
+			break;
+		case 'e':
+			do_emptydirs = true;
 			break;
 		default:
 			usage(argv[0], "unknown option");
@@ -296,6 +429,10 @@ main(int argc, char **argv, char **envp)
 	/* Make sure only one action is specified */
 	if (i != 1)
 		usage(argv[0], "incorrect option(s)");
+
+	/* Make sure --empty-dirs is only used with apply */
+	if (do_emptydirs && action != ACTION_APPLY)
+		usage(argv[0], "--empty-dirs is only valid with --apply");
 
 	/* Perform action */
 	switch (action) {
@@ -362,6 +499,9 @@ main(int argc, char **argv, char **envp)
 		}
 
 		mentries_compare(real, stored, compare_fix, do_mtime);
+
+		if (do_emptydirs)
+			fixup_emptydirs(real, stored);
 		break;
 
 	case ACTION_HELP:

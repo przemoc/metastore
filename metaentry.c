@@ -175,7 +175,7 @@ mentries_print(const struct metahash *mhash)
 #endif
 
 /* Creates a metaentry for the file/dir/etc at path */
-static struct metaentry *
+struct metaentry *
 mentry_create(const char *path)
 {
 	ssize_t lsize, vsize;
@@ -208,6 +208,7 @@ mentry_create(const char *path)
 
 	mentry = mentry_alloc();
 	mentry->path = xstrdup(path);
+	mentry->pathlen = strlen(mentry->path);
 	mentry->owner = xstrdup(pbuf->pw_name);
 	mentry->group = xstrdup(gbuf->gr_name);
 	mentry->mode = sbuf.st_mode & 0177777;
@@ -473,6 +474,7 @@ mentries_fromfile(struct metahash **mhash, const char *path)
 
 		mentry = mentry_alloc();
 		mentry->path = read_string(&ptr, max);
+		mentry->pathlen = strlen(mentry->path);
 		mentry->owner = read_string(&ptr, max);
 		mentry->group = read_string(&ptr, max);
 		mentry->mtime = (time_t)read_int(&ptr, 8, max);
@@ -549,8 +551,8 @@ mentry_compare_xattr(struct metaentry *left, struct metaentry *right)
 }
 
 /* Compares two metaentries and returns an int with a bitmask of differences */
-static int
-mentry_compare(struct metaentry *left, struct metaentry *right, int do_mtime)
+int
+mentry_compare(struct metaentry *left, struct metaentry *right, bool do_mtime)
 {
 	int retval = DIFF_NONE;
 
@@ -592,8 +594,8 @@ void
 mentries_compare(struct metahash *mhashreal,
 		 struct metahash *mhashstored,
 		 void (*pfunc)
-		 (struct metaentry *real, struct metaentry *stored, int do_mtime),
-		 int do_mtime)
+		 (struct metaentry *real, struct metaentry *stored, int cmp),
+		 bool do_mtime)
 {
 	struct metaentry *real, *stored;
 	int key;

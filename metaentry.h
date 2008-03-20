@@ -18,15 +18,22 @@
  *
  */
 
+#include <stdbool.h>
+
 /* Data structure to hold all metadata for a file/dir */
 struct metaentry {
-	struct metaentry *next;
+	struct metaentry *next; /* For the metahash chains */
+	struct metaentry *list; /* For creating additional lists of entries */
+
 	char *path;
+	unsigned int pathlen;
+
 	char *owner;
 	char *group;
         mode_t mode;
 	time_t mtime;
         long mtimensec;
+
 	unsigned int xattrs;
 	char **xattr_names;
 	ssize_t *xattr_lvalues;
@@ -40,6 +47,9 @@ struct metahash {
         struct metaentry *bucket[HASH_INDEXES];
         unsigned int count;
 };
+
+/* Create a metaentry for the file/dir/etc at path */
+struct metaentry *mentry_create(const char *path);
 
 /* Recurses opath and adds metadata entries to the metaentry list */
 void mentries_recurse_path(const char *opath, struct metahash **mhash);
@@ -65,11 +75,16 @@ int mentry_find_xattr(struct metaentry *haystack,
 #define DIFF_ADDED 0x40
 #define DIFF_DELE  0x80
 
+/* Compares two metaentries and returns an int with a bitmask of differences */
+int mentry_compare(struct metaentry *left,
+		   struct metaentry *right,
+		   bool do_mtime);
+
 /* Compares lists of real and stored metadata and calls pfunc for each */
 void mentries_compare(struct metahash *mhashreal,
                       struct metahash *mhashstored,
                       void (*pfunc)(struct metaentry *real,
                                     struct metaentry *stored,
                                     int cmp),
-                      int do_mtime);
+                      bool do_mtime);
 

@@ -1,1 +1,4 @@
-test
+metastore stores or restores metadata (owner, group, permissions, xattrs
+and optionally mtime) for a filesystem tree.
+
+See the manpage (metastore.1) for more details.

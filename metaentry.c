@@ -220,6 +220,10 @@ mentry_create(const char *path)
 	
 	lsize = listxattr(path, NULL, 0);
 	if (lsize < 0) {
+		/* Perhaps the FS doesn't support xattrs? */
+		if (errno == ENOTSUP)
+			return mentry;
+
 		msg(MSG_ERROR, "listxattr failed for %s: %s\n",
 		    path, strerror(errno));
 		return NULL;

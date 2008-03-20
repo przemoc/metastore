@@ -18,7 +18,7 @@
  *
  */
 
-/* Data structure to hold all metadata for a file */
+/* Data structure to hold all metadata for a file/dir */
 struct metaentry {
 	struct metaentry *next;
 	char *path;

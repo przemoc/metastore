@@ -343,7 +343,7 @@ usage(const char *arg0, const char *message)
 	    "  -q, --quiet\t\tPrint less verbose messages\n"
 	    "  -m, --mtime\t\tAlso take mtime into account for diff or apply\n"
 	    "  -e, --empty-dirs\tRecreate missing empty directories (experimental)\n"
-	    "  -f <file>, --file <file>\tSet metadata file\n"
+	    "  -f, --file   <file>\tSet metadata file\n"
 	    );
 
 	exit(message ? EXIT_FAILURE : EXIT_SUCCESS);

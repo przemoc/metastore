@@ -576,7 +576,7 @@ mentry_compare(struct metaentry *left, struct metaentry *right, bool do_mtime)
 	if ((left->mode & S_IFMT) != (right->mode & S_IFMT))
 		retval |= DIFF_TYPE;
 
-	if (do_mtime && strcmp(left->path, METAFILE) && 
+	if (do_mtime && strcmp(left->path, metafile) && 
 	    (left->mtime != right->mtime ||
 	     left->mtimensec != right->mtimensec))
 		retval |= DIFF_MTIME;

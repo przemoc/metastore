@@ -31,6 +31,9 @@
 #include "utils.h"
 #include "metaentry.h"
 
+/* Used to store the path to the file containing the metadata */
+char *metafile = METAFILE;
+
 /* Used to indicate whether mtimes should be corrected */
 static bool do_mtime = false;
 
@@ -339,6 +342,7 @@ usage(const char *arg0, const char *message)
 	    "  -q, --quiet\t\tPrint less verbose messages\n"
 	    "  -m, --mtime\t\tAlso take mtime into account for diff or apply\n"
 	    "  -e, --empty-dirs\tRecreate missing empty directories (experimental)\n"
+	    "  -f <file>, --file <file>\tSet metadata file\n"
 	    );
 
 	exit(message ? EXIT_FAILURE : EXIT_SUCCESS);
@@ -354,6 +358,7 @@ static struct option long_options[] = {
 	{"quiet", 0, 0, 0},
 	{"mtime", 0, 0, 0},
 	{"empty-dirs", 0, 0, 0},
+	{"file", required_argument, 0, 0},
 	{0, 0, 0, 0}
 };
 
@@ -370,7 +375,7 @@ main(int argc, char **argv, char **envp)
 	i = 0;
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "csahvqme",
+		c = getopt_long(argc, argv, "csahvqmef",
 				long_options, &option_index);
 		if (c == -1)
 			break;
@@ -388,6 +393,9 @@ main(int argc, char **argv, char **envp)
 			} else if (!strcmp("empty-dirs",
 					   long_options[option_index].name)) {
 				do_emptydirs = true;
+			} else if (!strcmp("file",
+				   long_options[option_index].name)) {
+				metafile = optarg;
 			} else {
 				action |= (1 << option_index);
 				i++;
@@ -421,6 +429,9 @@ main(int argc, char **argv, char **envp)
 		case 'e':
 			do_emptydirs = true;
 			break;
+		case 'f':
+			metafile = optarg;
+			break;
 		default:
 			usage(argv[0], "unknown option");
 		}
@@ -437,10 +448,10 @@ main(int argc, char **argv, char **envp)
 	/* Perform action */
 	switch (action) {
 	case ACTION_DIFF:
-		mentries_fromfile(&stored, METAFILE);
+		mentries_fromfile(&stored, metafile);
 		if (!stored) {
 			msg(MSG_CRITICAL, "Failed to load metadata from %s\n",
-			    METAFILE);
+			    metafile);
 			exit(EXIT_FAILURE);
 		}
 
@@ -474,14 +485,14 @@ main(int argc, char **argv, char **envp)
 			exit(EXIT_FAILURE);
 		}
 
-		mentries_tofile(real, METAFILE);
+		mentries_tofile(real, metafile);
 		break;
 
 	case ACTION_APPLY:
-		mentries_fromfile(&stored, METAFILE);
+		mentries_fromfile(&stored, metafile);
 		if (!stored) {
 			msg(MSG_CRITICAL, "Failed to load metadata from %s\n",
-			    METAFILE);
+			    metafile);
 			exit(EXIT_FAILURE);
 		}
 

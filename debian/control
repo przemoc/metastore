@@ -1,16 +1,21 @@
 Source: metastore
 Section: misc
 Priority: optional
-Maintainer: David Härdeman <david@hardeman.nu>
-Build-Depends: debhelper (>= 5.0.0), libattr1-dev
-Standards-Version: 3.7.2.2
-XS-Vcs-Git: git://git.hardeman.nu/metastore.git
-XS-Vcs-Browser: http://git.hardeman.nu/?p=metastore.git;a=summary
+Maintainer: Romain Francoise <rfrancoise@debian.org>
+Uploaders: David Härdeman <david@hardeman.nu>
+Build-Depends: debhelper (>= 7), libattr1-dev
+Standards-Version: 3.9.1
+Homepage: http://david.hardeman.nu/software.php
 
 Package: metastore
-Section: misc
 Architecture: any
-Depends: ${shlibs:Depends}
-Description: Store and restore metadata
- This package contains the metastore tool to store and restore metadata
- from a filesystem.
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: Store and restore metadata from a filesystem
+ metastore is a tool to store the metadata of files/directories/links in a file
+ tree to a separate file and to later compare and apply the stored metadata to
+ said file tree.
+ .
+ The tool was written as a supplement to git which does not store all metadata,
+ making it unsuitable for e.g. storing /etc in a repo. metastore could also be
+ helpful if you want to create a tarball of a file tree and make sure that
+ "everything" (e.g. xattrs, mtime, owner, group) is stored along with the files.

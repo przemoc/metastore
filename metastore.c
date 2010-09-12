@@ -376,7 +376,7 @@ main(int argc, char **argv, char **envp)
 	i = 0;
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "csahvqmef",
+		c = getopt_long(argc, argv, "csahvqmef:",
 				long_options, &option_index);
 		if (c == -1)
 			break;

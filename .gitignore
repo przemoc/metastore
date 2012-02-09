@@ -1,0 +1,4 @@
+metastore
+*.o
+/debian/files
+/debian/metastore*

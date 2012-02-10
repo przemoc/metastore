@@ -41,6 +41,9 @@ static bool do_mtime = false;
 /* Used to indicate whether empty dirs should be recreated */
 static bool do_emptydirs = false;
 
+/* Used to indicate whether .git dirs should be processed */
+static bool do_git = false;
+
 /* Used to create lists of dirs / other files which are missing in the fs */
 static struct metaentry *missingdirs = NULL;
 static struct metaentry *missingothers = NULL;
@@ -343,6 +346,7 @@ usage(const char *arg0, const char *message)
 	    "  -q, --quiet\t\tPrint less verbose messages\n"
 	    "  -m, --mtime\t\tAlso take mtime into account for diff or apply\n"
 	    "  -e, --empty-dirs\tRecreate missing empty directories (experimental)\n"
+	    "  -g, --git\t\tDo not omit .git directories\n"
 	    "  -f, --file   <file>\tSet metadata file\n"
 	    );
 
@@ -359,6 +363,7 @@ static struct option long_options[] = {
 	{"quiet", 0, 0, 0},
 	{"mtime", 0, 0, 0},
 	{"empty-dirs", 0, 0, 0},
+	{"git", 0, 0, 0},
 	{"file", required_argument, 0, 0},
 	{0, 0, 0, 0}
 };
@@ -376,7 +381,7 @@ main(int argc, char **argv, char **envp)
 	i = 0;
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "csahvqmef:",
+		c = getopt_long(argc, argv, "csahvqmegf:",
 				long_options, &option_index);
 		if (c == -1)
 			break;
@@ -394,6 +399,9 @@ main(int argc, char **argv, char **envp)
 			} else if (!strcmp("empty-dirs",
 					   long_options[option_index].name)) {
 				do_emptydirs = true;
+			} else if (!strcmp("git",
+					   long_options[option_index].name)) {
+				do_git = true;
 			} else if (!strcmp("file",
 				   long_options[option_index].name)) {
 				metafile = optarg;
@@ -430,6 +438,9 @@ main(int argc, char **argv, char **envp)
 		case 'e':
 			do_emptydirs = true;
 			break;
+		case 'g':
+			do_git = true;
+			break;
 		case 'f':
 			metafile = optarg;
 			break;
@@ -458,9 +469,9 @@ main(int argc, char **argv, char **envp)
 
 		if (optind < argc) {
 			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &real);
+				mentries_recurse_path(argv[optind++], &real, do_git);
 		} else {
-			mentries_recurse_path(".", &real);
+			mentries_recurse_path(".", &real, do_git);
 		}
 
 		if (!real) {
@@ -475,9 +486,9 @@ main(int argc, char **argv, char **envp)
 	case ACTION_SAVE:
 		if (optind < argc) {
 			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &real);
+				mentries_recurse_path(argv[optind++], &real, do_git);
 		} else {
-			mentries_recurse_path(".", &real);
+			mentries_recurse_path(".", &real, do_git);
 		}
 
 		if (!real) {
@@ -499,9 +510,9 @@ main(int argc, char **argv, char **envp)
 
 		if (optind < argc) {
 			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &real);
+				mentries_recurse_path(argv[optind++], &real, do_git);
 		} else {
-			mentries_recurse_path(".", &real);
+			mentries_recurse_path(".", &real, do_git);
 		}
 
 		if (!real) {

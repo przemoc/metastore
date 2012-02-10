@@ -1,4 +1,4 @@
-.TH metastore "1" "May 2007"
+.TH metastore "1" "February 2012"
 .\"
 .SH NAME
 metastore \- stores and restores filesystem metadata
@@ -47,6 +47,9 @@ Also attempts to recreate missing empty directories. May be useful where
 empty directories are not tracked (e.g. by git or cvs).
 Only works in combination with the \fBapply\fR option.
 This is currently an experimental feature.
+.TP
+.B -g, --git
+Prevents metastore from omitting .git directories.
 .TP
 .B -f <file>, --file <file>
 Causes the metadata to be saved, read from the specified file rather

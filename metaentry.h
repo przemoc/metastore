@@ -52,7 +52,7 @@ struct metahash {
 struct metaentry *mentry_create(const char *path);
 
 /* Recurses opath and adds metadata entries to the metaentry list */
-void mentries_recurse_path(const char *opath, struct metahash **mhash);
+void mentries_recurse_path(const char *opath, struct metahash **mhash, bool git);
 
 /* Stores a metaentry list to a file */
 void mentries_tofile(const struct metahash *mhash, const char *path);

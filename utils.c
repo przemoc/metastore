@@ -109,6 +109,9 @@ binary_print(const char *s, ssize_t len)
 void
 xfwrite(const void *ptr, size_t size, FILE *stream)
 {
+	if (size == 0) {
+		return;
+	}
 	if (fwrite(ptr, size, 1, stream) != 1) {
 		msg(MSG_CRITICAL, "Failed to write to file: %s\n",
 		    strerror(errno));

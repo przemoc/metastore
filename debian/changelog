@@ -1,3 +1,16 @@
+metastore (1:20120611) unstable; urgency=low
+
+  [ Romain Francoise ]
+  * Switch to debhelper compat level 9.
+  * Enable all hardening options.
+  * Don't overwrite environment CFLAGS, use CPPFLAGS.
+  * Bump Standards-Version to 3.9.3, no changes needed.
+
+  [ Przemyslaw Pawelczyk ]
+  * Remove no longer needed debian/{source/format,watch} files.
+
+ -- Przemyslaw Pawelczyk <przemoc@gmail.com>  Mon, 11 Jun 2012 11:30:52 +0200
+
 metastore (1:20120607) unstable; urgency=low
 
   [ Zak Wilcox ]

@@ -176,7 +176,7 @@ mentries_print(const struct metahash *mhash)
 
 /* Creates a metaentry for the file/dir/etc at path */
 struct metaentry *
-mentry_create(const char *path)
+mentry_create(const char *path, bool ntfs)
 {
 	ssize_t lsize, vsize;
 	char *list, *attr;
@@ -230,8 +230,16 @@ mentry_create(const char *path)
 		return NULL;
 	}
 
+        if (ntfs)
+		lsize += 33;// strlen("system.ntfs_acl\0system.ntfs_attr\0")
+
 	list = xmalloc(lsize);
-	lsize = listxattr(path, list, lsize);
+	if (ntfs) {
+		memcpy(list, "system.ntfs_acl\0system.ntfs_attr", 33);
+		lsize = listxattr(path, list+33, lsize);
+	}
+	else
+		lsize = listxattr(path, list, lsize);
 	if (lsize < 0) {
 		msg(MSG_ERROR, "listxattr failed for %s: %s\n",
 		    path, strerror(errno));
@@ -314,7 +322,7 @@ normalize_path(const char *orig)
 
 /* Internal function for the recursive path walk */
 static void
-mentries_recurse(const char *path, struct metahash *mhash)
+mentries_recurse(const char *path, struct metahash *mhash, bool ntfs)
 {
 	struct stat sbuf;
 	struct metaentry *mentry;
@@ -331,7 +339,7 @@ mentries_recurse(const char *path, struct metahash *mhash)
 		return;
 	}
 
-	mentry = mentry_create(path);
+	mentry = mentry_create(path, ntfs);
 	if (!mentry)
 		return;
 
@@ -351,7 +359,7 @@ mentries_recurse(const char *path, struct metahash *mhash)
 				continue;
 			snprintf(tpath, PATH_MAX, "%s/%s", path, dent->d_name);
 			tpath[PATH_MAX - 1] = '\0';
-			mentries_recurse(tpath, mhash);
+			mentries_recurse(tpath, mhash, ntfs);
 		}
 
 		closedir(dir);
@@ -360,7 +368,7 @@ mentries_recurse(const char *path, struct metahash *mhash)
 
 /* Internal function for the recursive path walk ignoring .git dirs */
 static void
-mentries_recurse_wo_git(const char *path, struct metahash *mhash)
+mentries_recurse_wo_git(const char *path, struct metahash *mhash, bool ntfs)
 {
 	struct stat sbuf;
 	struct metaentry *mentry;
@@ -377,7 +385,7 @@ mentries_recurse_wo_git(const char *path, struct metahash *mhash)
 		return;
 	}
 
-	mentry = mentry_create(path);
+	mentry = mentry_create(path, ntfs);
 	if (!mentry)
 		return;
 
@@ -398,7 +406,7 @@ mentries_recurse_wo_git(const char *path, struct metahash *mhash)
 				continue;
 			snprintf(tpath, PATH_MAX, "%s/%s", path, dent->d_name);
 			tpath[PATH_MAX - 1] = '\0';
-			mentries_recurse_wo_git(tpath, mhash);
+			mentries_recurse_wo_git(tpath, mhash, ntfs);
 		}
 
 		closedir(dir);
@@ -407,16 +415,16 @@ mentries_recurse_wo_git(const char *path, struct metahash *mhash)
 
 /* Recurses opath and adds metadata entries to the metaentry list */
 void
-mentries_recurse_path(const char *opath, struct metahash **mhash, bool git)
+mentries_recurse_path(const char *opath, struct metahash **mhash, bool git, bool ntfs)
 {
 	char *path = normalize_path(opath);
 
 	if (!(*mhash))
 		*mhash = mhash_alloc();
 	if (git)
-		mentries_recurse(path, *mhash);
+		mentries_recurse(path, *mhash, ntfs);
 	else
-		mentries_recurse_wo_git(path, *mhash);
+		mentries_recurse_wo_git(path, *mhash, ntfs);
 	free(path);
 }
 

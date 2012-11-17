@@ -49,10 +49,10 @@ struct metahash {
 };
 
 /* Create a metaentry for the file/dir/etc at path */
-struct metaentry *mentry_create(const char *path);
+struct metaentry *mentry_create(const char *path, bool ntfs);
 
 /* Recurses opath and adds metadata entries to the metaentry list */
-void mentries_recurse_path(const char *opath, struct metahash **mhash, bool git);
+void mentries_recurse_path(const char *opath, struct metahash **mhash, bool git, bool ntfs);
 
 /* Stores a metaentry list to a file */
 void mentries_tofile(const struct metahash *mhash, const char *path);

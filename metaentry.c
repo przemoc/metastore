@@ -231,12 +231,12 @@ mentry_create(const char *path, bool ntfs)
 	}
 
         if (ntfs)
-		lsize += 33;// strlen("system.ntfs_acl\0system.ntfs_attr\0")
+		lsize += 35;// strlen("system.ntfs_acl\0system.ntfs_attrib\0")
 
 	list = xmalloc(lsize);
 	if (ntfs) {
-		memcpy(list, "system.ntfs_acl\0system.ntfs_attr", 33);
-		lsize = listxattr(path, list+33, lsize);
+		memcpy(list, "system.ntfs_acl\0system.ntfs_attrib", 35);
+		lsize = listxattr(path, list+35, lsize);
 	}
 	else
 		lsize = listxattr(path, list, lsize);

@@ -44,6 +44,9 @@ static bool do_emptydirs = false;
 /* Used to indicate whether .git dirs should be processed */
 static bool do_git = false;
 
+/* Used to indicate whether NTFS system attributes should be stored */
+static bool do_ntfs = false;
+
 /* Used to create lists of dirs / other files which are missing in the fs */
 static struct metaentry *missingdirs = NULL;
 static struct metaentry *missingothers = NULL;
@@ -319,7 +322,7 @@ fixup_emptydirs(struct metahash *real, struct metahash *stored)
 		}
 		msg(MSG_QUIET, "ok\n");
 
-		new = mentry_create(cur->path);
+		new = mentry_create(cur->path, do_ntfs);
 		if (!new) {
 			msg(MSG_QUIET, "Failed to get metadata for %s\n");
 			continue;
@@ -348,6 +351,7 @@ usage(const char *arg0, const char *message)
 	    "  -e, --empty-dirs\tRecreate missing empty directories (experimental)\n"
 	    "  -g, --git\t\tDo not omit .git directories\n"
 	    "  -f, --file   <file>\tSet metadata file\n"
+            "  -n, --ntfs\t\tSearch for ntfs system attributes\n"
 	    );
 
 	exit(message ? EXIT_FAILURE : EXIT_SUCCESS);
@@ -365,6 +369,7 @@ static struct option long_options[] = {
 	{"empty-dirs", 0, 0, 0},
 	{"git", 0, 0, 0},
 	{"file", required_argument, 0, 0},
+        {"ntfs", 0, 0, 0},
 	{0, 0, 0, 0}
 };
 
@@ -381,7 +386,7 @@ main(int argc, char **argv, char **envp)
 	i = 0;
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "csahvqmegf:",
+		c = getopt_long(argc, argv, "csahvqmegf:n",
 				long_options, &option_index);
 		if (c == -1)
 			break;
@@ -405,6 +410,9 @@ main(int argc, char **argv, char **envp)
 			} else if (!strcmp("file",
 				   long_options[option_index].name)) {
 				metafile = optarg;
+			} else if (!strcmp("ntfs",
+					   long_options[option_index].name)) {
+				do_ntfs = true;
 			} else {
 				action |= (1 << option_index);
 				i++;
@@ -444,6 +452,9 @@ main(int argc, char **argv, char **envp)
 		case 'f':
 			metafile = optarg;
 			break;
+                case 'n':
+                        do_ntfs = true;
+                        break;
 		default:
 			usage(argv[0], "unknown option");
 		}
@@ -469,9 +480,9 @@ main(int argc, char **argv, char **envp)
 
 		if (optind < argc) {
 			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &real, do_git);
+				mentries_recurse_path(argv[optind++], &real, do_git, do_ntfs);
 		} else {
-			mentries_recurse_path(".", &real, do_git);
+			mentries_recurse_path(".", &real, do_git, do_ntfs);
 		}
 
 		if (!real) {
@@ -486,9 +497,9 @@ main(int argc, char **argv, char **envp)
 	case ACTION_SAVE:
 		if (optind < argc) {
 			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &real, do_git);
+				mentries_recurse_path(argv[optind++], &real, do_git, do_ntfs);
 		} else {
-			mentries_recurse_path(".", &real, do_git);
+			mentries_recurse_path(".", &real, do_git, do_ntfs);
 		}
 
 		if (!real) {
@@ -510,9 +521,9 @@ main(int argc, char **argv, char **envp)
 
 		if (optind < argc) {
 			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &real, do_git);
+				mentries_recurse_path(argv[optind++], &real, do_git, do_ntfs);
 		} else {
-			mentries_recurse_path(".", &real, do_git);
+			mentries_recurse_path(".", &real, do_git, do_ntfs);
 		}
 
 		if (!real) {

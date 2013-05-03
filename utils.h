@@ -18,6 +18,9 @@
  *
  */
 
+#ifndef UTILS_H
+#define UTILS_H
+
 /* For uint64_t */
 #include <stdint.h>
 /* For ssize_t */
@@ -85,3 +88,4 @@ struct passwd *xgetpwnam(const char *name);
 /* Caching version of getpwuid */
 struct passwd *xgetpwuid(uid_t uid);
 
+#endif /* UTILS_H */

@@ -18,6 +18,9 @@
  *
  */
 
+#ifndef METAENTRY_H
+#define METAENTRY_H
+
 #include <stdbool.h>
 
 #include "settings.h"
@@ -90,3 +93,4 @@ void mentries_compare(struct metahash *mhashreal,
                                     int cmp),
                       msettings *st);
 
+#endif /* METAENTRY_H */

@@ -18,6 +18,9 @@
  *
  */
 
+#ifndef METASTORE_H
+#define METASTORE_H
+
 /* Each file starts with SIGNATURE and VERSION */
 #define SIGNATURE    "MeTaSt00r3"
 #define SIGNATURELEN 10
@@ -32,3 +35,5 @@
 #define ACTION_SAVE  0x02
 #define ACTION_APPLY 0x04
 #define ACTION_HELP  0x08
+
+#endif /* METASTORE_H */

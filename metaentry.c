@@ -314,53 +314,7 @@ normalize_path(const char *orig)
 
 /* Internal function for the recursive path walk */
 static void
-mentries_recurse(const char *path, struct metahash *mhash)
-{
-	struct stat sbuf;
-	struct metaentry *mentry;
-	char tpath[PATH_MAX];
-	DIR *dir;
-	struct dirent *dent;
-
-	if (!path)
-		return;
-
-	if (lstat(path, &sbuf)) {
-		msg(MSG_ERROR, "lstat failed for %s: %s\n",
-		    path, strerror(errno));
-		return;
-	}
-
-	mentry = mentry_create(path);
-	if (!mentry)
-		return;
-
-	mentry_insert(mentry, mhash);
-
-	if (S_ISDIR(sbuf.st_mode)) {
-		dir = opendir(path);
-		if (!dir) {
-			msg(MSG_ERROR, "opendir failed for %s: %s\n",
-			    path, strerror(errno));
-			return;
-		}
-
-		while ((dent = readdir(dir))) {
-			if (!strcmp(dent->d_name, ".") ||
-			    !strcmp(dent->d_name, ".."))
-				continue;
-			snprintf(tpath, PATH_MAX, "%s/%s", path, dent->d_name);
-			tpath[PATH_MAX - 1] = '\0';
-			mentries_recurse(tpath, mhash);
-		}
-
-		closedir(dir);
-	}
-}
-
-/* Internal function for the recursive path walk ignoring .git dirs */
-static void
-mentries_recurse_wo_git(const char *path, struct metahash *mhash)
+mentries_recurse(const char *path, struct metahash *mhash, msettings *st)
 {
 	struct stat sbuf;
 	struct metaentry *mentry;
@@ -394,11 +348,11 @@ mentries_recurse_wo_git(const char *path, struct metahash *mhash)
 		while ((dent = readdir(dir))) {
 			if (!strcmp(dent->d_name, ".") ||
 			    !strcmp(dent->d_name, "..") ||
-			    !strcmp(dent->d_name, ".git"))
+			    (!st->do_git && !strcmp(dent->d_name, ".git")))
 				continue;
 			snprintf(tpath, PATH_MAX, "%s/%s", path, dent->d_name);
 			tpath[PATH_MAX - 1] = '\0';
-			mentries_recurse_wo_git(tpath, mhash);
+			mentries_recurse(tpath, mhash, st);
 		}
 
 		closedir(dir);
@@ -413,10 +367,7 @@ mentries_recurse_path(const char *opath, struct metahash **mhash, msettings *st)
 
 	if (!(*mhash))
 		*mhash = mhash_alloc();
-	if (st->do_git)
-		mentries_recurse(path, *mhash);
-	else
-		mentries_recurse_wo_git(path, *mhash);
+	mentries_recurse(path, *mhash, st);
 	free(path);
 }
 

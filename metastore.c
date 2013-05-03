@@ -29,20 +29,17 @@
 #include <unistd.h>
 
 #include "metastore.h"
+#include "settings.h"
 #include "utils.h"
 #include "metaentry.h"
 
-/* Used to store the path to the file containing the metadata */
-char *metafile = METAFILE;
-
-/* Used to indicate whether mtimes should be corrected */
-static bool do_mtime = false;
-
-/* Used to indicate whether empty dirs should be recreated */
-static bool do_emptydirs = false;
-
-/* Used to indicate whether .git dirs should be processed */
-static bool do_git = false;
+/* metastore settings */
+static struct metasettings settings = {
+	.metafile = METAFILE,
+	.do_mtime = false,
+	.do_emptydirs = false,
+	.do_git = false,
+};
 
 /* Used to create lists of dirs / other files which are missing in the fs */
 static struct metaentry *missingdirs = NULL;
@@ -325,7 +322,7 @@ fixup_emptydirs(struct metahash *real, struct metahash *stored)
 			continue;
 		}
 
-		compare_fix(new, cur, mentry_compare(new, cur, do_mtime));
+		compare_fix(new, cur, mentry_compare(new, cur, &settings));
 	}
 }
 
@@ -395,16 +392,16 @@ main(int argc, char **argv, char **envp)
 				adjust_verbosity(-1);
 			} else if (!strcmp("mtime",
 					   long_options[option_index].name)) {
-				do_mtime = true;
+				settings.do_mtime = true;
 			} else if (!strcmp("empty-dirs",
 					   long_options[option_index].name)) {
-				do_emptydirs = true;
+				settings.do_emptydirs = true;
 			} else if (!strcmp("git",
 					   long_options[option_index].name)) {
-				do_git = true;
+				settings.do_git = true;
 			} else if (!strcmp("file",
 				   long_options[option_index].name)) {
-				metafile = optarg;
+				settings.metafile = optarg;
 			} else {
 				action |= (1 << option_index);
 				i++;
@@ -433,16 +430,16 @@ main(int argc, char **argv, char **envp)
 			adjust_verbosity(-1);
 			break;
 		case 'm':
-			do_mtime = true;
+			settings.do_mtime = true;
 			break;
 		case 'e':
-			do_emptydirs = true;
+			settings.do_emptydirs = true;
 			break;
 		case 'g':
-			do_git = true;
+			settings.do_git = true;
 			break;
 		case 'f':
-			metafile = optarg;
+			settings.metafile = optarg;
 			break;
 		default:
 			usage(argv[0], "unknown option");
@@ -454,24 +451,24 @@ main(int argc, char **argv, char **envp)
 		usage(argv[0], "incorrect option(s)");
 
 	/* Make sure --empty-dirs is only used with apply */
-	if (do_emptydirs && action != ACTION_APPLY)
+	if (settings.do_emptydirs && action != ACTION_APPLY)
 		usage(argv[0], "--empty-dirs is only valid with --apply");
 
 	/* Perform action */
 	switch (action) {
 	case ACTION_DIFF:
-		mentries_fromfile(&stored, metafile);
+		mentries_fromfile(&stored, settings.metafile);
 		if (!stored) {
 			msg(MSG_CRITICAL, "Failed to load metadata from %s\n",
-			    metafile);
+			    settings.metafile);
 			exit(EXIT_FAILURE);
 		}
 
 		if (optind < argc) {
 			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &real, do_git);
+				mentries_recurse_path(argv[optind++], &real, &settings);
 		} else {
-			mentries_recurse_path(".", &real, do_git);
+			mentries_recurse_path(".", &real, &settings);
 		}
 
 		if (!real) {
@@ -480,15 +477,15 @@ main(int argc, char **argv, char **envp)
 			exit(EXIT_FAILURE);
 		}
 
-		mentries_compare(real, stored, compare_print, do_mtime);
+		mentries_compare(real, stored, compare_print, &settings);
 		break;
 
 	case ACTION_SAVE:
 		if (optind < argc) {
 			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &real, do_git);
+				mentries_recurse_path(argv[optind++], &real, &settings);
 		} else {
-			mentries_recurse_path(".", &real, do_git);
+			mentries_recurse_path(".", &real, &settings);
 		}
 
 		if (!real) {
@@ -497,22 +494,22 @@ main(int argc, char **argv, char **envp)
 			exit(EXIT_FAILURE);
 		}
 
-		mentries_tofile(real, metafile);
+		mentries_tofile(real, settings.metafile);
 		break;
 
 	case ACTION_APPLY:
-		mentries_fromfile(&stored, metafile);
+		mentries_fromfile(&stored, settings.metafile);
 		if (!stored) {
 			msg(MSG_CRITICAL, "Failed to load metadata from %s\n",
-			    metafile);
+			    settings.metafile);
 			exit(EXIT_FAILURE);
 		}
 
 		if (optind < argc) {
 			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &real, do_git);
+				mentries_recurse_path(argv[optind++], &real, &settings);
 		} else {
-			mentries_recurse_path(".", &real, do_git);
+			mentries_recurse_path(".", &real, &settings);
 		}
 
 		if (!real) {
@@ -521,9 +518,9 @@ main(int argc, char **argv, char **envp)
 			exit(EXIT_FAILURE);
 		}
 
-		mentries_compare(real, stored, compare_fix, do_mtime);
+		mentries_compare(real, stored, compare_fix, &settings);
 
-		if (do_emptydirs)
+		if (settings.do_emptydirs)
 			fixup_emptydirs(real, stored);
 		break;
 

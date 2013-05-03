@@ -32,7 +32,3 @@
 #define ACTION_SAVE  0x02
 #define ACTION_APPLY 0x04
 #define ACTION_HELP  0x08
-
-/* Used to store the name of the file containing the metadata */
-extern char *metafile;
-

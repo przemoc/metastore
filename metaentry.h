@@ -20,6 +20,8 @@
 
 #include <stdbool.h>
 
+#include "settings.h"
+
 /* Data structure to hold all metadata for a file/dir */
 struct metaentry {
 	struct metaentry *next; /* For the metahash chains */
@@ -52,7 +54,7 @@ struct metahash {
 struct metaentry *mentry_create(const char *path);
 
 /* Recurses opath and adds metadata entries to the metaentry list */
-void mentries_recurse_path(const char *opath, struct metahash **mhash, bool git);
+void mentries_recurse_path(const char *opath, struct metahash **mhash, msettings *st);
 
 /* Stores a metaentry list to a file */
 void mentries_tofile(const struct metahash *mhash, const char *path);
@@ -78,7 +80,7 @@ int mentry_find_xattr(struct metaentry *haystack,
 /* Compares two metaentries and returns an int with a bitmask of differences */
 int mentry_compare(struct metaentry *left,
 		   struct metaentry *right,
-		   bool do_mtime);
+		   msettings *st);
 
 /* Compares lists of real and stored metadata and calls pfunc for each */
 void mentries_compare(struct metahash *mhashreal,
@@ -86,5 +88,5 @@ void mentries_compare(struct metahash *mhashreal,
                       void (*pfunc)(struct metaentry *real,
                                     struct metaentry *stored,
                                     int cmp),
-                      bool do_mtime);
+                      msettings *st);
 

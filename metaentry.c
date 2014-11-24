@@ -167,7 +167,7 @@ mentries_print(const struct metahash *mhash)
 	int index;
 
 	for (index = 0; index < HASH_INDEXES; index++)
-		for (mentry = mhash->bucket[i]; mentry; mentry = mentry->next)
+		for (mentry = mhash->bucket[index]; mentry; mentry = mentry->next)
 			mentry_print(mentry);
 
 	msg(MSG_DEBUG, "%i entries in total\n", mhash->count);

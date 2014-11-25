@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # This script can be used instead of git-pull when updating a remote
 # repo to make sure the metadata matches what is stored in the repo.

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # An example hook script to store metadata information using
 # metastore on each commit.

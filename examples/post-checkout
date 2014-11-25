@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# An example hook script to set metadata information using
+# metastore after each checkout.
+
+MSFILE=".metadata"
+
+exit_on_fail() {
+	"$@"
+	if [ $? -ne 0 ]; then
+		echo "Failed to execute: $@" >&2
+		exit 1
+	fi
+}
+
+if [ ! -e "$MSFILE" ]; then
+	echo "\"$MSFILE\" missing" >&2
+	exit 1
+fi
+
+exit_on_fail \
+	metastore -a -m -e -E -q -f "$MSFILE"
+
+exit 0

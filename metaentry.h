@@ -68,7 +68,7 @@ void mentries_fromfile(struct metahash **mhash, const char *path);
 /* Searches haystack for an xattr matching xattr number n in needle */
 int mentry_find_xattr(struct metaentry *haystack,
                       struct metaentry *needle,
-                      int n);
+                      unsigned n);
 
 #define DIFF_NONE  0x00
 #define DIFF_OWNER 0x01

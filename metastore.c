@@ -112,7 +112,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 	gid_t gid = -1;
 	uid_t uid = -1;
 	struct utimbuf tbuf;
-	int i;
+	unsigned i;
 
 	if (!real && !stored) {
 		msg(MSG_ERROR, "%s called with incorrect arguments\n",

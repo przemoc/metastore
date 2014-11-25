@@ -41,7 +41,7 @@
 static void
 mentry_free(struct metaentry *m)
 {
-	int i;
+	unsigned i;
 
 	if (!m)
 		return;
@@ -377,7 +377,8 @@ mentries_tofile(const struct metahash *mhash, const char *path)
 {
 	FILE *to;
 	const struct metaentry *mentry;
-	int key, i;
+	int key;
+	unsigned i;
 
 	to = fopen(path, "w");
 	if (!to) {
@@ -420,7 +421,7 @@ mentries_fromfile(struct metahash **mhash, const char *path)
 	char *max;
 	int fd;
 	struct stat sbuf;
-	int i;
+	unsigned i;
 
 	if (!(*mhash))
 		*mhash = mhash_alloc();
@@ -513,9 +514,10 @@ out:
 
 /* Searches haystack for an xattr matching xattr number n in needle */
 int
-mentry_find_xattr(struct metaentry *haystack, struct metaentry *needle, int n)
+mentry_find_xattr(struct metaentry *haystack, struct metaentry *needle,
+                  unsigned n)
 {
-	int i;
+	unsigned i;
 
 	for (i = 0; i < haystack->xattrs; i++) {
 		if (strcmp(haystack->xattr_names[i], needle->xattr_names[n]))
@@ -534,7 +536,7 @@ mentry_find_xattr(struct metaentry *haystack, struct metaentry *needle, int n)
 static int
 mentry_compare_xattr(struct metaentry *left, struct metaentry *right)
 {
-	int i;
+	unsigned i;
 
 	if (left->xattrs != right->xattrs)
 		return 1;

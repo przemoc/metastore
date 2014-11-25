@@ -121,7 +121,7 @@ void
 write_int(uint64_t value, size_t len, FILE *to)
 {
 	char buf[len];
-	int i;
+	size_t i;
 
 	for (i = 0; i < len; i++)
 		buf[i] = ((value >> (8 * i)) & 0xff);
@@ -147,7 +147,7 @@ uint64_t
 read_int(char **from, size_t len, const char *max)
 {
 	uint64_t result = 0;
-	int i;
+	size_t i;
 
 	if (*from + len > max) {
 		msg(MSG_CRITICAL,

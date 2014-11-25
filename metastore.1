@@ -16,42 +16,42 @@ stored metadata to make sure that system security is not compromised.
 .\"
 .SH ACTIONS
 .TP
-.B -c, --compare
+.B \-c, \-\-compare
 Shows the difference between the stored and real metadata.
 .TP
-.B -s, --save
+.B \-s, \-\-save
 Saves the current metadata to ./.metadata or to the specified file
-(see --file option below).
+(see \-\-file option below).
 .TP
-.B -a, --apply
+.B \-a, \-\-apply
 Attempts to apply the stored metadata to the file system.
 .TP
-.B -h, --help
+.B \-h, \-\-help
 Prints a help message and exits.
 .\"
 .SH OPTIONS
 .TP
-.B -v, --verbose
+.B \-v, \-\-verbose
 Causes metastore to print more verbose messages. Can be repeated more than
 once for even more verbosity.
 .TP
-.B -q, --quiet
+.B \-q, \-\-quiet
 Causes metastore to print less verbose messages. Can be repeated more than
 once for even less verbosity.
 .TP
-.B -m, --mtime
+.B \-m, \-\-mtime
 Causes metastore to also take mtime into account for the compare or apply actions.
 .TP
-.B -e, --empty-dirs
+.B \-e, \-\-empty\-dirs
 Also attempts to recreate missing empty directories. May be useful where
 empty directories are not tracked (e.g. by git or cvs).
 Only works in combination with the \fBapply\fR option.
 This is currently an experimental feature.
 .TP
-.B -g, --git
+.B \-g, \-\-git
 Prevents metastore from omitting .git directories.
 .TP
-.B -f <file>, --file <file>
+.B \-f <file>, \-\-file <file>
 Causes the metadata to be saved, read from the specified file rather
 than ./.metadata.
 .\"

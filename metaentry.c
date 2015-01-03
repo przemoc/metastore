@@ -25,13 +25,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <attr/xattr.h>
+#include <sys/xattr.h>
 #include <limits.h>
 #include <dirent.h>
 #include <sys/mman.h>
 #include <utime.h>
 #include <fcntl.h>
 #include <stdint.h>
+#include <errno.h>
 
 #include "metastore.h"
 #include "metaentry.h"

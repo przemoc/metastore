@@ -1,46 +1,95 @@
-metastore stores or restores metadata (owner, group, permissions, xattrs
-and optionally mtime) for a filesystem tree.
+metastore
+=========
 
-See the manpage (metastore.1) for more details.
+metastore is a tool to store the metadata of files/directories/links in
+a file tree to a separate file and to later compare and apply the stored
+metadata to said file tree.
 
-The file format of the .metastore files is as follows:
+It was written as a supplement to git which does not store all metadata,
+making it unsuitable for e.g. storing /etc in a repository.
 
-Data types
-----------
+metastore can also be helpful if you want to create a tarball of a file
+tree and make sure that "everything" (e.g. xattrs, mtime, owner, group)
+is stored along with the files.
 
-CSTRING = NULL-terminated binary string
 
-BSTRING(N) = binary string of length N
+This metastore is unofficial continuation of the original metastore
+application created by David Härdeman (who no longer maintains it).
 
-INT(N) = N byte integer in big endian byte order
+
+Stored metadata
+---------------
+
+metastore stores following metadata in its files:
+
+- owner,
+- group,
+- permissions,
+- xattrs,
+- mtime - optionally.
+
+
+Usage
+-----
+
+See the manual page (metastore.1) for details on usage.
 
 
 File format
 -----------
-HEADER
-N * ENTRY
+
+Following sections explain internals of .metastore files.
 
 
-HEADER format
--------------
-BSTRING(10) - Magic header - "MeTaSt00r3"
-BSTRING(8)  - Version - "\0\0\0\0\0\0\0\0" (currently)
+### Data types
+
+    CSTRING     = NUL-terminated binary string
+    BSTRING(N)  = binary string of length N
+    INT(N)      = N byte integer in big endian byte order
 
 
-ENTRY format
-------------
-CSTRING - Path (absolute or relative)
-CSTRING - Owner (owner name, not uid)
-CSTRING - Group (group name, not gid)
+### File layout
 
-INT(8)  - Mtime (seconds)
-INT(8)  - Mtime (nanoseconds)
-INT(2)  - Mode (st_mode from struct stat st_mode AND 0177777,
-                i.e. unix permissions and type of file)
+    HEADER
+    N * ENTRY
 
-INT(4)  - num_xattrs
-FOR (i = 0; i < num_xattrs; i++) {
-    CSTRING           - xattr name
-    INT(4)            - xattrlen
-    BSTRING(xattrlen) - xattr value
-}
+
+### HEADER format
+
+    BSTRING(10) - Magic header - "MeTaSt00r3"
+    BSTRING(8)  - Version - "\0\0\0\0\0\0\0\0" (currently)
+
+
+### ENTRY format
+
+    CSTRING     - Path  (absolute or relative)
+    CSTRING     - Owner (owner name, not uid)
+    CSTRING     - Group (group name, not gid)
+
+    INT(8)      - Mtime (seconds)
+    INT(8)      - Mtime (nanoseconds)
+    INT(2)      - Mode  (st_mode from struct stat st_mode AND 0177777,
+                         i.e. unix permissions and type of file)
+
+    INT(4)      - num_xattrs
+    FOR (i = 0; i < num_xattrs; i++) {
+        CSTRING            - xattr name
+        INT(4)             - xattrlen
+        BSTRING(xattrlen)  - xattr value
+    }
+
+
+License
+-------
+
+The project is licensed under the terms of the GNU GPL v2 license.
+See LICENSE file for the full license text.
+
+
+Bug reports
+-----------
+
+Please use the issue tracker provided by GitHub to send bug reports
+or feature requests.
+
+https://github.com/przemoc/metastore/issues

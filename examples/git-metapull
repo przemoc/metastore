@@ -6,44 +6,41 @@
 # and after getting confirmation, apply the changes.
 
 DO_MTIME=yes
+MSFILE=".metadata"
 umask 0077
 
+[ "$DO_MTIME" = "yes" ] && MSFLAGS="-m"
 
-if ! git-pull; then
-	echo "Failed to execute git-pull" >&2
+exit_on_fail() {
+	"$@"
+	if [ $? -ne 0 ]; then
+		echo "Failed to execute: $@" >&2
+		exit 1
+	fi
+}
+
+exit_on_fail \
+	git-pull
+
+if [ ! -e "$MSFILE" ]; then
+	echo "\"$MSFILE\" missing" >&2
 	exit 1
 fi
 
-if [ ! -e ".metadata" ]; then
-        echo ".metadata missing" >&2
-        exit 1
-fi
-
 echo "Going to apply the following metadata changes" >&2
-if [ "$DO_MTIME" = "yes" ]; then
-	metastore -c -m >&2
-else
-	metastore -c >&2
-fi
 
-echo -n "Ok to apply? (y/n): " >&2
-read -n1 REPLY
+metastore -c $MSFLAGS -f "$MSFILE" >&2
+
+printf "%s" "Ok to apply? (y/n): " >&2
+read REPLY
 echo ""
 
 if [ "$REPLY" != "y" ]; then
-        echo "Aborted" >&2
-        exit 1
+	echo "Aborted" >&2
+	exit 1
 fi
 
-if [ "$DO_MTIME" = "yes" ]; then
-	flags="-a -m"
-else
-	flags="-a"
-fi
-
-if ! metastore $flags; then
-        echo "Failed to execute metastore $flags" >&2
-        exit 1
-fi
+exit_on_fail \
+	metastore -a $MSFLAGS -f "$MSFILE"
 
 exit 0

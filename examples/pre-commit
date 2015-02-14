@@ -3,19 +3,25 @@
 # An example hook script to store metadata information using
 # metastore on each commit.
 
-if ! metastore -s; then
-	echo "Failed to execute metastore -s" >&2
+MSFILE=".metadata"
+
+exit_on_fail() {
+	"$@"
+	if [ $? -ne 0 ]; then
+		echo "Failed to execute: $@" >&2
+		exit 1
+	fi
+}
+
+exit_on_fail \
+	metastore -s -f "$MSFILE"
+
+if [ ! -e "$MSFILE" ]; then
+	echo "\"$MSFILE\" missing" >&2
 	exit 1
 fi
 
-if [ ! -e ".metadata" ]; then
-	echo ".metadata missing" >&2
-	exit 1
-fi
-
-if ! git-add .metadata; then
-	echo "Failed to execute git-add .metadata" >&2
-	exit 1
-fi
+exit_on_fail \
+	git-add "$MSFILE"
 
 exit 0

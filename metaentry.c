@@ -25,17 +25,18 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <attr/xattr.h>
 #include <limits.h>
 #include <dirent.h>
 #include <sys/mman.h>
 #include <utime.h>
 #include <fcntl.h>
 #include <stdint.h>
+#include <errno.h>
 
 #include "metastore.h"
 #include "metaentry.h"
 #include "utils.h"
+#include "os_if.h"
 
 /* Free's a metaentry and all its parameters */
 static void
@@ -219,7 +220,7 @@ mentry_create(const char *path)
 	if (S_ISLNK(mentry->mode))
 		return mentry;
 	
-	lsize = listxattr(path, NULL, 0);
+	lsize = xattr_list(path, NULL, 0);
 	if (lsize < 0) {
 		/* Perhaps the FS doesn't support xattrs? */
 		if (errno == ENOTSUP)
@@ -231,7 +232,7 @@ mentry_create(const char *path)
 	}
 
 	list = xmalloc(lsize);
-	lsize = listxattr(path, list, lsize);
+	lsize = xattr_list(path, list, lsize);
 	if (lsize < 0) {
 		msg(MSG_ERROR, "listxattr failed for %s: %s\n",
 		    path, strerror(errno));
@@ -260,7 +261,7 @@ mentry_create(const char *path)
 			continue;
 
 		mentry->xattr_names[i] = xstrdup(attr);
-		vsize = getxattr(path, attr, NULL, 0);
+		vsize = xattr_get(path, attr, NULL, 0);
 		if (vsize < 0) {
 			msg(MSG_ERROR, "getxattr failed for %s: %s\n",
 			    path, strerror(errno));
@@ -272,7 +273,7 @@ mentry_create(const char *path)
 		mentry->xattr_lvalues[i] = vsize;
 		mentry->xattr_values[i] = xmalloc(vsize);
 
-		vsize = getxattr(path, attr, mentry->xattr_values[i], vsize);
+		vsize = xattr_get(path, attr, mentry->xattr_values[i], vsize);
 		if (vsize < 0) {
 			msg(MSG_ERROR, "getxattr failed for %s: %s\n",
 			    path, strerror(errno));
@@ -291,7 +292,7 @@ mentry_create(const char *path)
 static char *
 normalize_path(const char *orig)
 {
-	char *real = canonicalize_file_name(orig);
+	char *real = canonical_path_get(orig);
 	char cwd[PATH_MAX];
 	char *result;
 

@@ -23,15 +23,16 @@
 #include <sys/stat.h>
 #include <getopt.h>
 #include <utime.h>
-#include <attr/xattr.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "metastore.h"
 #include "settings.h"
 #include "utils.h"
 #include "metaentry.h"
+#include "os_if.h"
 
 /* metastore settings */
 static struct metasettings settings = {
@@ -210,7 +211,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 
 			msg(MSG_NORMAL, "%s:\tremoving xattr %s\n",
 			    real->path, real->xattr_names[i]);
-			if (lremovexattr(real->path, real->xattr_names[i]))
+			if (xattr_remove_link(real->path, real->xattr_names[i]))
 				msg(MSG_DEBUG, "\tlremovexattr failed: %s\n",
 				    strerror(errno));
 		}
@@ -222,9 +223,9 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 
 			msg(MSG_NORMAL, "%s:\tadding xattr %s\n",
 			    stored->path, stored->xattr_names[i]);
-			if (lsetxattr(stored->path, stored->xattr_names[i], 
+			if (xattr_set_link(stored->path, stored->xattr_names[i], 
 				      stored->xattr_values[i],
-				      stored->xattr_lvalues[i], XATTR_CREATE))
+				      stored->xattr_lvalues[i]))
 				msg(MSG_DEBUG, "\tlsetxattr failed: %s\n",
 				    strerror(errno));
 		}
@@ -530,4 +531,3 @@ main(int argc, char **argv, char **envp)
 
 	exit(EXIT_SUCCESS);
 }
-

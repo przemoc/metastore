@@ -17,7 +17,7 @@
 #
 # Generic settings
 #
-CC              = gcc
+CC              = cc
 CFLAGS         += -g -Wall -pedantic -std=c99 -D_FILE_OFFSET_BITS=64 -O2
 LDFLAGS        +=
 INCLUDES        =
@@ -26,8 +26,8 @@ INSTALL_PROGRAM = ${INSTALL}
 INSTALL_DATA    = ${INSTALL} -m 644
 COMPILE         = $(CC) $(INCLUDES) $(CFLAGS) $(CPPFLAGS)
 LINK            = $(CC) $(CFLAGS) $(LDFLAGS)
-OBJECTS         = utils.o metastore.o metaentry.o
-HEADERS         = utils.h metastore.h metaentry.h
+OBJECTS         = utils.o metastore.o metaentry.o os_if.o
+HEADERS         = utils.h metastore.h metaentry.h os_if.h
 
 DESTDIR        ?=
 prefix         	= /usr
@@ -45,10 +45,8 @@ all: metastore
 %.o: %.c $(HEADERS)
 	$(COMPILE) -o $@ -c $<
 
-
 metastore: $(OBJECTS)
-	$(LINK) -o $@ $^
-
+	$(LINK) -o $@ $(OBJECTS)
 
 install: all
 	$(INSTALL_DATA) -D metastore.1 $(DESTDIR)$(mandir)/man1/metastore.1
@@ -65,4 +63,3 @@ clean:
 
 
 .PHONY: install uninstall clean all
-

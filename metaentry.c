@@ -226,7 +226,7 @@ mentry_create(const char *path)
 		if (errno == ENOTSUP)
 			return mentry;
 
-		msg(MSG_ERROR, "listxattr failed for %s: %s\n",
+		msg(MSG_ERROR, "xattr_list failed for %s: %s\n",
 		    path, strerror(errno));
 		return NULL;
 	}
@@ -234,7 +234,7 @@ mentry_create(const char *path)
 	list = xmalloc(lsize);
 	lsize = xattr_list(path, list, lsize);
 	if (lsize < 0) {
-		msg(MSG_ERROR, "listxattr failed for %s: %s\n",
+		msg(MSG_ERROR, "xattr_list failed for %s: %s\n",
 		    path, strerror(errno));
 		free(list);
 		return NULL;
@@ -263,7 +263,7 @@ mentry_create(const char *path)
 		mentry->xattr_names[i] = xstrdup(attr);
 		vsize = xattr_get(path, attr, NULL, 0);
 		if (vsize < 0) {
-			msg(MSG_ERROR, "getxattr failed for %s: %s\n",
+			msg(MSG_ERROR, "xattr_get failed for %s: %s\n",
 			    path, strerror(errno));
 			free(list);
 			mentry_free(mentry);
@@ -275,7 +275,7 @@ mentry_create(const char *path)
 
 		vsize = xattr_get(path, attr, mentry->xattr_values[i], vsize);
 		if (vsize < 0) {
-			msg(MSG_ERROR, "getxattr failed for %s: %s\n",
+			msg(MSG_ERROR, "xattr_get failed for %s: %s\n",
 			    path, strerror(errno));
 			free(list);
 			mentry_free(mentry);

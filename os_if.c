@@ -95,18 +95,17 @@ xattr_remove_link (const char * path, const char * name)
     return extattr_delete_link(path, EXTATTR_NAMESPACE_USER, name);
 }
 
-// FIXME: return value difference
 int
 xattr_set_link (const char * path, const char * name, const void * value,
                 size_t size)
 {
-    int res = -1;
+    int res = 0;
 
-    ssize_t foo = extattr_set_link(path, EXTATTR_NAMESPACE_USER, name,
-                                   value, size);
-    if (foo < 0)
+    ssize_t length = extattr_set_link(path, EXTATTR_NAMESPACE_USER, name,
+                                      value, size);
+    if (length < 0)
     {
-        res = errno;
+        res = -1;
     }
 
     return res;

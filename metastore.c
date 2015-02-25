@@ -212,7 +212,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 			msg(MSG_NORMAL, "%s:\tremoving xattr %s\n",
 			    real->path, real->xattr_names[i]);
 			if (xattr_remove_link(real->path, real->xattr_names[i]))
-				msg(MSG_DEBUG, "\tlremovexattr failed: %s\n",
+				msg(MSG_DEBUG, "\txattr_remove_link failed: %s\n",
 				    strerror(errno));
 		}
 
@@ -226,7 +226,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 			if (xattr_set_link(stored->path, stored->xattr_names[i], 
 				      stored->xattr_values[i],
 				      stored->xattr_lvalues[i]))
-				msg(MSG_DEBUG, "\tlsetxattr failed: %s\n",
+				msg(MSG_DEBUG, "\txattr_set_link failed: %s\n",
 				    strerror(errno));
 		}
 	}

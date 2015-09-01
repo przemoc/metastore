@@ -38,12 +38,16 @@ static struct metasettings settings = {
 	.metafile = METAFILE,
 	.do_mtime = false,
 	.do_emptydirs = false,
+	.do_removeemptydirs = false,
 	.do_git = false,
 };
 
 /* Used to create lists of dirs / other files which are missing in the fs */
 static struct metaentry *missingdirs = NULL;
 static struct metaentry *missingothers = NULL;
+
+/* Used to create lists of dirs / other files which are missing in metadata */
+static struct metaentry *extradirs = NULL;
 
 /*
  * Inserts an entry in a linked list ordered by pathlen 
@@ -131,6 +135,8 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 	}
 
 	if (!stored) {
+		if (S_ISDIR(real->mode))
+			insert_entry_plist(&extradirs, real);
 		msg(MSG_NORMAL, "%s:\tadded\n", real->path);
 		return;
 	}
@@ -232,7 +238,9 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 }
 
 /*
- * Tries to fix any empty dirs which are missing by recreating them.
+ * Tries to fix any empty dirs which are missing from the filesystem by
+ * recreating them.  Also deletes any empty dirs present in the filesystem
+ * that are missing from the metadata.
  * An "empty" dir is one which either:
  *  - is empty; or
  *  - only contained empty dirs
@@ -326,6 +334,48 @@ fixup_emptydirs(struct metahash *real, struct metahash *stored)
 	}
 }
 
+/*
+ * Deletes any empty dirs present in the filesystem that are missing
+ * from the metadata.
+ * An "empty" dir is one which either:
+ *  - is empty; or
+ *  - only contains empty dirs
+ */
+static void
+fixup_newemptydirs(void)
+{
+	struct metaentry *cur;
+	int removed_dirs = 1;
+
+	if (!extradirs)
+		return;
+
+	/* This is a simpleminded algorithm that attempts to rmdir() all
+	 * directories discovered missing from the metadata. Naturally, this will
+	 * succeed only on the truly empty directories, but depending on the order,
+	 * it may mean that parent directory removal are attempted to be removed
+	 * *before* the children. To circumvent this, keep looping around all the
+	 * directories until none have been successfully removed.  This is a
+	 * O(N**2) algorithm, so don't try to remove too many nested directories
+	 * at once (e.g. thousands).
+	 *
+	 * Note that this will succeed only if each parent directory is writable.
+	 */
+	while (removed_dirs) {
+		removed_dirs = 0;
+		msg(MSG_DEBUG, "\nAttempting to delete empty dirs\n");
+		for (cur = extradirs; cur; cur = cur->list) {
+			msg(MSG_QUIET, "%s:\tremoving...", cur->path);
+			if (rmdir(cur->path)) {
+				msg(MSG_QUIET, "failed (%s)\n", strerror(errno));
+				continue;
+			}
+			removed_dirs++;
+			msg(MSG_QUIET, "ok\n");
+		}
+	}
+}
+
 /* Prints usage message and exits */
 static void
 usage(const char *arg0, const char *message)
@@ -342,7 +392,8 @@ usage(const char *arg0, const char *message)
 	    "  -v, --verbose\t\tPrint more verbose messages\n"
 	    "  -q, --quiet\t\tPrint less verbose messages\n"
 	    "  -m, --mtime\t\tAlso take mtime into account for diff or apply\n"
-	    "  -e, --empty-dirs\tRecreate missing empty directories (experimental)\n"
+	    "  -E\t\t\tRemove extra empty directories\n"
+	    "  -e, --empty-dirs\tRecreate missing empty directories\n"
 	    "  -g, --git\t\tDo not omit .git directories\n"
 	    "  -f, --file   <file>\tSet metadata file\n"
 	    );
@@ -360,6 +411,7 @@ static struct option long_options[] = {
 	{"quiet", 0, 0, 0},
 	{"mtime", 0, 0, 0},
 	{"empty-dirs", 0, 0, 0},
+	{"remove-empty-dirs", 0, 0, 0},
 	{"git", 0, 0, 0},
 	{"file", required_argument, 0, 0},
 	{0, 0, 0, 0}
@@ -378,7 +430,7 @@ main(int argc, char **argv, char **envp)
 	i = 0;
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "csahvqmegf:",
+		c = getopt_long(argc, argv, "csahvqmeEgf:",
 				long_options, &option_index);
 		if (c == -1)
 			break;
@@ -396,6 +448,9 @@ main(int argc, char **argv, char **envp)
 			} else if (!strcmp("empty-dirs",
 					   long_options[option_index].name)) {
 				settings.do_emptydirs = true;
+			} else if (!strcmp("remove-empty-dirs",
+					   long_options[option_index].name)) {
+				settings.do_removeemptydirs = true;
 			} else if (!strcmp("git",
 					   long_options[option_index].name)) {
 				settings.do_git = true;
@@ -435,6 +490,9 @@ main(int argc, char **argv, char **envp)
 		case 'e':
 			settings.do_emptydirs = true;
 			break;
+		case 'E':
+			settings.do_removeemptydirs = true;
+			break;
 		case 'g':
 			settings.do_git = true;
 			break;
@@ -453,6 +511,10 @@ main(int argc, char **argv, char **envp)
 	/* Make sure --empty-dirs is only used with apply */
 	if (settings.do_emptydirs && action != ACTION_APPLY)
 		usage(argv[0], "--empty-dirs is only valid with --apply");
+
+	/* Make sure --remove-empty-dirs is only used with apply */
+	if (settings.do_removeemptydirs && action != ACTION_APPLY)
+		usage(argv[0], "--remove-empty-dirs is only valid with --apply");
 
 	/* Perform action */
 	switch (action) {
@@ -522,6 +584,8 @@ main(int argc, char **argv, char **envp)
 
 		if (settings.do_emptydirs)
 			fixup_emptydirs(real, stored);
+		if (settings.do_removeemptydirs)
+			fixup_newemptydirs();
 		break;
 
 	case ACTION_HELP:

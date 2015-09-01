@@ -22,10 +22,11 @@
 
 /* Data structure to hold metastore settings */
 struct metasettings {
-	char *metafile;    /* path to the file containing the metadata */
-	bool do_mtime;     /* should mtimes be corrected? */
-	bool do_emptydirs; /* should empty dirs be recreated? */
-	bool do_git;       /* should .git dirs be processed? */
+	char *metafile;          /* path to the file containing the metadata */
+	bool do_mtime;           /* should mtimes be corrected? */
+	bool do_emptydirs;       /* should empty dirs be recreated? */
+	bool do_removeemptydirs; /* should new empty dirs be removed? */
+	bool do_git;             /* should .git dirs be processed? */
 };
 
 /* Convenient typedef for immutable settings */

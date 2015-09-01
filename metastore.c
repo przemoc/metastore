@@ -378,20 +378,25 @@ usage(const char *arg0, const char *message)
 {
 	if (message)
 		msg(MSG_CRITICAL, "%s: %s\n\n", arg0, message);
-	msg(MSG_CRITICAL, "Usage: %s ACTION [OPTION...] [PATH...]\n\n", arg0);
-	msg(MSG_CRITICAL, "Where ACTION is one of:\n"
-	    "  -c, --compare\t\tShow differences between stored and real metadata\n"
-	    "  -s, --save\t\tSave current metadata\n"
-	    "  -a, --apply\t\tApply stored metadata\n"
-	    "  -h, --help\t\tHelp message (this text)\n\n"
-	    "Valid OPTIONS are:\n"
-	    "  -v, --verbose\t\tPrint more verbose messages\n"
-	    "  -q, --quiet\t\tPrint less verbose messages\n"
-	    "  -m, --mtime\t\tAlso take mtime into account for diff or apply\n"
-	    "  -E\t\t\tRemove extra empty directories\n"
-	    "  -e, --empty-dirs\tRecreate missing empty directories\n"
-	    "  -g, --git\t\tDo not omit .git directories\n"
-	    "  -f, --file   <file>\tSet metadata file\n"
+	msg(MSG_CRITICAL,
+"Usage: %s ACTION [OPTION...] [PATH...]\n",
+	    arg0);
+	msg(MSG_CRITICAL,
+"\n"
+"Where ACTION is one of:\n"
+"  -c, --compare            Show differences between stored and real metadata\n"
+"  -s, --save               Save current metadata\n"
+"  -a, --apply              Apply stored metadata\n"
+"  -h, --help               Help message (this text)\n"
+"\n"
+"Valid OPTIONS are:\n"
+"  -v, --verbose            Print more verbose messages\n"
+"  -q, --quiet              Print less verbose messages\n"
+"  -m, --mtime              Also take mtime into account for diff or apply\n"
+"  -e, --empty-dirs         Recreate missing empty directories\n"
+"  -E, --remove-empty-dirs  Remove extra empty directories\n"
+"  -g, --git                Do not omit .git directories\n"
+"  -f, --file=FILE          Set metadata file to FILE\n"
 	    );
 
 	exit(message ? EXIT_FAILURE : EXIT_SUCCESS);

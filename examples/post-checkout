@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# An example hook script to set metadata information using
+# metastore after each checkout.
+
+if [ ! -e ".metadata" ]; then
+	echo ".metadata missing" >&2
+	exit 1
+fi
+
+if ! metastore -a -m -e -E -q; then
+	echo "Failed to execute metastore" >&2
+	exit 1
+fi

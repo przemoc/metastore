@@ -292,7 +292,7 @@ mentry_create(const char *path)
 static char *
 normalize_path(const char *orig)
 {
-	char *real = canonicalize_file_name(orig);
+	char *real = realpath(orig, NULL);
 	char cwd[PATH_MAX];
 	char *result;
 

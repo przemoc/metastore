@@ -1,6 +1,10 @@
-Latest stuff                          (planned release date: 2015-03-??)
+Latest stuff                          (planned release date: 2015-09-??)
 ------------------------------------------------------------------------
 
+ * Empty directories not present in metadata can be now removed when
+   applying stored metadata if -E / --remove-empty-dirs option is used.
+
+ * Scripts in example/ directory do not require bash anymore.
 
 
 Old times                                                    (2007-2014)

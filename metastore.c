@@ -340,7 +340,7 @@ fixup_emptydirs(struct metahash *real, struct metahash *stored)
 static void
 fixup_newemptydirs(void)
 {
-	struct metaentry *cur;
+	struct metaentry **cur;
 	int removed_dirs = 1;
 
 	if (!extradirs)
@@ -360,12 +360,15 @@ fixup_newemptydirs(void)
 	while (removed_dirs) {
 		removed_dirs = 0;
 		msg(MSG_DEBUG, "\nAttempting to delete empty dirs\n");
-		for (cur = extradirs; cur; cur = cur->list) {
-			msg(MSG_QUIET, "%s:\tremoving...", cur->path);
-			if (rmdir(cur->path)) {
+		for (cur = &extradirs; *cur;) {
+			msg(MSG_QUIET, "%s:\tremoving...", (*cur)->path);
+			if (rmdir((*cur)->path)) {
 				msg(MSG_QUIET, "failed (%s)\n", strerror(errno));
+				cur = &(*cur)->list;
 				continue;
 			}
+			/* No freeing, because OS will do the job at the end. */
+			*cur = (*cur)->list;
 			removed_dirs++;
 			msg(MSG_QUIET, "ok\n");
 		}

@@ -260,7 +260,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
  * recreating them.
  */
 static void
-fixup_emptydirs(struct metahash *real, struct metahash *stored)
+fixup_emptydirs(void)
 {
 	struct metaentry *entry;
 	struct metaentry *cur;
@@ -441,7 +441,7 @@ static struct option long_options[] = {
 
 /* Main function */
 int
-main(int argc, char **argv, char **envp)
+main(int argc, char **argv)
 {
 	int i, c;
 	struct metahash *real = NULL;
@@ -605,7 +605,7 @@ main(int argc, char **argv, char **envp)
 		mentries_compare(real, stored, compare_fix, &settings);
 
 		if (settings.do_emptydirs)
-			fixup_emptydirs(real, stored);
+			fixup_emptydirs();
 		if (settings.do_removeemptydirs)
 			fixup_newemptydirs();
 		break;

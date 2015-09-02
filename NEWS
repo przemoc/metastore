@@ -4,7 +4,8 @@ Latest stuff                          (planned release date: 2015-09-??)
  * Empty directories not present in metadata can be now removed when
    applying stored metadata if -E / --remove-empty-dirs option is used.
 
- * Scripts in example/ directory do not require bash anymore.
+ * Scripts in example/ directory do not require bash anymore and there
+   is a new example for post checkout hook.
 
 
 Old times                                                    (2007-2014)

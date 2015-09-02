@@ -7,6 +7,10 @@ Latest stuff                          (planned release date: 2015-09-??)
  * Scripts in example/ directory do not require bash anymore and there
    is a new example for post checkout hook.
 
+ * Dependency on libattr's xattr.h header has been removed.
+   As long as your libc provides sys/xattr.h (glibc does it since v2.3),
+   everything should be fine.
+
 
 Old times                                                    (2007-2014)
 ------------------------------------------------------------------------

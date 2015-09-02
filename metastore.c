@@ -67,6 +67,23 @@ insert_entry_plist(struct metaentry **list, struct metaentry *entry)
 }
 	
 /*
+ * Inserts an entry in a linked list ordered by pathlen descendingly
+ */
+static void
+insert_entry_pdlist(struct metaentry **list, struct metaentry *entry)
+{
+	struct metaentry **parent;
+
+	for (parent = list; *parent; parent = &((*parent)->list)) {
+		if ((*parent)->pathlen < entry->pathlen)
+			break;
+	}
+
+	entry->list = *parent;
+	*parent = entry;
+}
+
+/*
  * Prints differences between real and stored actual metadata
  * - for use in mentries_compare
  */
@@ -136,7 +153,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 
 	if (!stored) {
 		if (S_ISDIR(real->mode))
-			insert_entry_plist(&extradirs, real);
+			insert_entry_pdlist(&extradirs, real);
 		msg(MSG_NORMAL, "%s:\tadded\n", real->path);
 		return;
 	}

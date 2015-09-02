@@ -38,7 +38,7 @@ See the manual page (metastore.1) for details on usage.
 File format
 -----------
 
-Following sections explain internals of .metastore files.
+Following sections explain internals of metastore file (*.metadata).
 
 
 ### Data types

@@ -54,7 +54,7 @@ char *xstrdup(const char *s);
 /* Human-readable printout of binary data */
 void binary_print(const char *s, ssize_t len);
 
-/* Writes data to a file or exits on failure */ 
+/* Writes data to a file or exits on failure */
 void xfwrite(const void *ptr, size_t size, FILE *stream);
 
 /* Writes an int to a file, using len bytes, in bigendian order */

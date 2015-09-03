@@ -218,7 +218,7 @@ mentry_create(const char *path)
 	/* symlinks have no xattrs */
 	if (S_ISLNK(mentry->mode))
 		return mentry;
-	
+
 	lsize = listxattr(path, NULL, 0);
 	if (lsize < 0) {
 		/* Perhaps the FS doesn't support xattrs? */
@@ -372,7 +372,7 @@ mentries_recurse_path(const char *opath, struct metahash **mhash, msettings *st)
 }
 
 /* Stores metaentries to a file */
-void 
+void
 mentries_tofile(const struct metahash *mhash, const char *path)
 {
 	FILE *to;
@@ -390,7 +390,7 @@ mentries_tofile(const struct metahash *mhash, const char *path)
 	write_binary_string(SIGNATURE, SIGNATURELEN, to);
 	write_binary_string(VERSION, VERSIONLEN, to);
 
-	for (key = 0; key < HASH_INDEXES; key++) {		
+	for (key = 0; key < HASH_INDEXES; key++) {
 		for (mentry = mhash->bucket[key]; mentry; mentry = mentry->next) {
 			write_string(mentry->path, to);
 			write_string(mentry->owner, to);
@@ -500,7 +500,7 @@ mentries_fromfile(struct metahash **mhash, const char *path)
 			mentry->xattr_lvalues[i] =
 				(int)read_int(&ptr, 4, max);
 			mentry->xattr_values[i] =
-				read_binary_string(&ptr, 
+				read_binary_string(&ptr,
 						   mentry->xattr_lvalues[i],
 						   max);
 		}

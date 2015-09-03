@@ -50,7 +50,7 @@ static struct metaentry *missingothers = NULL;
 static struct metaentry *extradirs = NULL;
 
 /*
- * Inserts an entry in a linked list ordered by pathlen 
+ * Inserts an entry in a linked list ordered by pathlen
  */
 static void
 insert_entry_plist(struct metaentry **list, struct metaentry *entry)
@@ -65,7 +65,7 @@ insert_entry_plist(struct metaentry **list, struct metaentry *entry)
 	entry->list = *parent;
 	*parent = entry;
 }
-	
+
 /*
  * Inserts an entry in a linked list ordered by pathlen descendingly
  */
@@ -245,7 +245,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 
 			msg(MSG_NORMAL, "%s:\tadding xattr %s\n",
 			    stored->path, stored->xattr_names[i]);
-			if (lsetxattr(stored->path, stored->xattr_names[i], 
+			if (lsetxattr(stored->path, stored->xattr_names[i],
 				      stored->xattr_values[i],
 				      stored->xattr_lvalues[i], XATTR_CREATE))
 				msg(MSG_DEBUG, "\tlsetxattr failed: %s\n",

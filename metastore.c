@@ -485,80 +485,46 @@ main(int argc, char **argv)
 	if (settings.do_removeemptydirs && action != ACTION_APPLY)
 		usage(argv[0], "--remove-empty-dirs is only valid with --apply");
 
+	if (action == ACTION_HELP)
+		usage(argv[0], NULL);
+
 	/* Perform action */
+	if (action & ACTIONS_READING) {
+		mentries_fromfile(&stored, settings.metafile);
+		if (!stored) {
+			msg(MSG_CRITICAL, "Failed to load metadata from %s\n",
+			    settings.metafile);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	if (optind < argc) {
+		while (optind < argc)
+			mentries_recurse_path(argv[optind++], &real, &settings);
+	} else {
+		mentries_recurse_path(".", &real, &settings);
+	}
+
+	if (!real) {
+		msg(MSG_CRITICAL,
+		    "Failed to load metadata from file system\n");
+		exit(EXIT_FAILURE);
+	}
+
 	switch (action) {
 	case ACTION_DIFF:
-		mentries_fromfile(&stored, settings.metafile);
-		if (!stored) {
-			msg(MSG_CRITICAL, "Failed to load metadata from %s\n",
-			    settings.metafile);
-			exit(EXIT_FAILURE);
-		}
-
-		if (optind < argc) {
-			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &real, &settings);
-		} else {
-			mentries_recurse_path(".", &real, &settings);
-		}
-
-		if (!real) {
-			msg(MSG_CRITICAL,
-			    "Failed to load metadata from file system\n");
-			exit(EXIT_FAILURE);
-		}
-
 		mentries_compare(real, stored, compare_print, &settings);
 		break;
-
 	case ACTION_SAVE:
-		if (optind < argc) {
-			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &real, &settings);
-		} else {
-			mentries_recurse_path(".", &real, &settings);
-		}
-
-		if (!real) {
-			msg(MSG_CRITICAL,
-			    "Failed to load metadata from file system\n");
-			exit(EXIT_FAILURE);
-		}
-
 		mentries_tofile(real, settings.metafile);
 		break;
-
 	case ACTION_APPLY:
-		mentries_fromfile(&stored, settings.metafile);
-		if (!stored) {
-			msg(MSG_CRITICAL, "Failed to load metadata from %s\n",
-			    settings.metafile);
-			exit(EXIT_FAILURE);
-		}
-
-		if (optind < argc) {
-			while (optind < argc)
-				mentries_recurse_path(argv[optind++], &real, &settings);
-		} else {
-			mentries_recurse_path(".", &real, &settings);
-		}
-
-		if (!real) {
-			msg(MSG_CRITICAL,
-			    "Failed to load metadata from file system\n");
-			exit(EXIT_FAILURE);
-		}
-
 		mentries_compare(real, stored, compare_fix, &settings);
-
 		if (settings.do_emptydirs)
 			fixup_emptydirs();
 		if (settings.do_removeemptydirs)
 			fixup_newemptydirs();
 		break;
-
-	case ACTION_HELP:
-		usage(argv[0], NULL);
 	}
 
 	exit(EXIT_SUCCESS);

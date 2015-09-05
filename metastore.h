@@ -30,9 +30,13 @@
 #define METAFILE     "./.metadata"
 
 /* Utility defines for the action to take */
-#define ACTION_DIFF  0x01
-#define ACTION_SAVE  0x02
-#define ACTION_APPLY 0x04
-#define ACTION_HELP  0x08
+#define ACTION_APPLY 0x01
+#define ACTION_DIFF  0x02
+#define ACTION_SAVE  0x10
+#define ACTION_HELP  0x80
+
+/* Action masks */
+#define ACTIONS_READING 0x07
+#define ACTIONS_WRITING 0x70
 
 #endif /* METASTORE_H */

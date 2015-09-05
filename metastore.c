@@ -424,18 +424,18 @@ usage(const char *arg0, const char *message)
 
 /* Options */
 static struct option long_options[] = {
-	{"compare", 0, 0, 0},
-	{"save", 0, 0, 0},
-	{"apply", 0, 0, 0},
-	{"help", 0, 0, 0},
-	{"verbose", 0, 0, 0},
-	{"quiet", 0, 0, 0},
-	{"mtime", 0, 0, 0},
-	{"empty-dirs", 0, 0, 0},
-	{"remove-empty-dirs", 0, 0, 0},
-	{"git", 0, 0, 0},
-	{"file", required_argument, 0, 0},
-	{0, 0, 0, 0}
+	{ "compare",           no_argument,       NULL, 'c' },
+	{ "save",              no_argument,       NULL, 's' },
+	{ "apply",             no_argument,       NULL, 'a' },
+	{ "help",              no_argument,       NULL, 'h' },
+	{ "verbose",           no_argument,       NULL, 'v' },
+	{ "quiet",             no_argument,       NULL, 'q' },
+	{ "mtime",             no_argument,       NULL, 'm' },
+	{ "empty-dirs",        no_argument,       NULL, 'e' },
+	{ "remove-empty-dirs", no_argument,       NULL, 'E' },
+	{ "git",               no_argument,       NULL, 'g' },
+	{ "file",              required_argument, NULL, 'f' },
+	{ NULL, 0, NULL, 0 }
 };
 
 /* Main function */
@@ -452,74 +452,22 @@ main(int argc, char **argv)
 	while (1) {
 		int option_index = 0;
 		c = getopt_long(argc, argv, "csahvqmeEgf:",
-				long_options, &option_index);
+		                long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
-		case 0:
-			if (!strcmp("verbose",
-				    long_options[option_index].name)) {
-				adjust_verbosity(1);
-			} else if (!strcmp("quiet",
-					   long_options[option_index].name)) {
-				adjust_verbosity(-1);
-			} else if (!strcmp("mtime",
-					   long_options[option_index].name)) {
-				settings.do_mtime = true;
-			} else if (!strcmp("empty-dirs",
-					   long_options[option_index].name)) {
-				settings.do_emptydirs = true;
-			} else if (!strcmp("remove-empty-dirs",
-					   long_options[option_index].name)) {
-				settings.do_removeemptydirs = true;
-			} else if (!strcmp("git",
-					   long_options[option_index].name)) {
-				settings.do_git = true;
-			} else if (!strcmp("file",
-				   long_options[option_index].name)) {
-				settings.metafile = optarg;
-			} else {
-				action |= (1 << option_index);
-				i++;
-			}
-			break;
-		case 'c':
-			action |= ACTION_DIFF;
-			i++;
-			break;
-		case 's':
-			action |= ACTION_SAVE;
-			i++;
-			break;
-		case 'a':
-			action |= ACTION_APPLY;
-			i++;
-			break;
-		case 'h':
-			action |= ACTION_HELP;
-			i++;
-			break;
-		case 'v':
-			adjust_verbosity(1);
-			break;
-		case 'q':
-			adjust_verbosity(-1);
-			break;
-		case 'm':
-			settings.do_mtime = true;
-			break;
-		case 'e':
-			settings.do_emptydirs = true;
-			break;
-		case 'E':
-			settings.do_removeemptydirs = true;
-			break;
-		case 'g':
-			settings.do_git = true;
-			break;
-		case 'f':
-			settings.metafile = optarg;
-			break;
+		case 'c': /* compare */           action |= ACTION_DIFF;  i++;   break;
+		case 's': /* save */              action |= ACTION_SAVE;  i++;   break;
+		case 'a': /* apply */             action |= ACTION_APPLY; i++;   break;
+		case 'h': /* help */              action |= ACTION_HELP;  i++;   break;
+		case 'v': /* verbose */           adjust_verbosity(1);           break;
+		case 'q': /* quiet */             adjust_verbosity(-1);          break;
+		case 'm': /* mtime */             settings.do_mtime = true;      break;
+		case 'e': /* empty-dirs */        settings.do_emptydirs = true;  break;
+		case 'E': /* remove-empty-dirs */ settings.do_removeemptydirs = true;
+			                              break;
+		case 'g': /* git */               settings.do_git = true;        break;
+		case 'f': /* file */              settings.metafile = optarg;    break;
 		default:
 			usage(argv[0], "unknown option");
 		}

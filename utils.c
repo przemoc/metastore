@@ -173,7 +173,7 @@ read_binary_string(char **from, size_t len, const char *max)
 	}
 
 	result = xmalloc(len);
-	strncpy(result, *from, len);
+	memcpy(result, *from, len);
 	*from += len;
 	return result;
 }

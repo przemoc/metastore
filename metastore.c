@@ -416,7 +416,7 @@ usage(const char *arg0, const char *message)
 "  -e, --empty-dirs         Recreate missing empty directories\n"
 "  -E, --remove-empty-dirs  Remove extra empty directories\n"
 "  -g, --git                Do not omit .git directories\n"
-"  -f, --file=FILE          Set metadata file to FILE\n"
+"  -f, --file=FILE          Set metadata file (" METAFILE " by default)\n"
 	    );
 
 	exit(message ? EXIT_FAILURE : EXIT_SUCCESS);

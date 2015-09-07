@@ -32,6 +32,8 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <errno.h>
+#include <bsd/string.h>
+#include <time.h>
 
 #include "metastore.h"
 #include "metaentry.h"
@@ -626,3 +628,50 @@ mentries_compare(struct metahash *mhashreal,
 	}
 }
 
+/* Dumps given metadata */
+void
+mentries_dump(struct metahash *mhash)
+{
+	const struct metaentry *mentry;
+	char mode[11 + 1] = "";
+	char date[12 + 2 + 2 + 2*1 + 1 + 2 + 2 + 2 + 2*1 + 1] = "";
+	char zone[5 + 1] = "";
+	struct tm cal;
+
+	for (int key = 0; key < HASH_INDEXES; key++) {
+		for (mentry = mhash->bucket[key]; mentry; mentry = mentry->next) {
+			strmode(mentry->mode, mode);
+			localtime_r(&mentry->mtime, &cal);
+			strftime(date, sizeof(date), "%F %T", &cal);
+			strftime(zone, sizeof(zone), "%z", &cal);
+			printf("%s\t%s\t%s\t%s.%09ld %s\t%s%s\n",
+			       mode,
+			       mentry->owner, mentry->group,
+			       date, mentry->mtimensec, zone,
+			       mentry->path, S_ISDIR(mentry->mode) ? "/" : "");
+			for (int i = 0; i < mentry->xattrs; i++) {
+				printf("\t\t\t\t%s%s\t%s=",
+				       mentry->path, S_ISDIR(mentry->mode) ? "/" : "",
+				       mentry->xattr_names[i]);
+				ssize_t p = 0;
+				for (; p < mentry->xattr_lvalues[i]; p++) {
+					const char ch = mentry->xattr_values[i][p];
+					if ((unsigned)(ch - 32) > 126 - 32) {
+						p = -1;
+						break;
+					}
+				}
+				if (p >= 0)
+					printf("\"%.*s\"\n",
+					       (int)mentry->xattr_lvalues[i],
+					       mentry->xattr_values[i]);
+				else {
+					printf("0x");
+					for (p = 0; p < mentry->xattr_lvalues[i]; p++)
+						printf("%02hhx", (char)mentry->xattr_values[i][p]);
+					printf("\n");
+				}
+			}
+		}
+	}
+}

@@ -92,4 +92,6 @@ void mentries_compare(struct metahash *mhashreal,
                                     int cmp),
                       msettings *st);
 
+void mentries_dump(struct metahash *mhash);
+
 #endif /* METAENTRY_H */

@@ -32,6 +32,7 @@
 /* Utility defines for the action to take */
 #define ACTION_APPLY 0x01
 #define ACTION_DIFF  0x02
+#define ACTION_DUMP  0x04
 #define ACTION_SAVE  0x10
 #define ACTION_HELP  0x80
 

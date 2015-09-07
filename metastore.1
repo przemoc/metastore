@@ -26,6 +26,15 @@ Saves the current metadata to ./.metadata or to the specified file
 .B \-a, \-\-apply
 Attempts to apply the stored metadata to the file system.
 .TP
+.B \-d, \-\-dump
+Dumps stored (if no \fIPATH\fR is given) or real metadata (if \fIPATH\fR is
+present, e.g. \fB./\fR) in human-readable form.
+
+This action is meant only as a helpful debugging facility or merge conflict
+helper. Do not ever compare its output generated using different metastore
+version. Do not rely on current output format (especially in batch scripts),
+because it may change in future without prior notice.
+.TP
 .B \-h, \-\-help
 Prints a help message and exits.
 .\"

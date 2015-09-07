@@ -19,7 +19,7 @@
 #
 CC              = gcc
 CFLAGS         += -g -Wall -pedantic -std=c99 -D_FILE_OFFSET_BITS=64 -O2
-LDFLAGS        +=
+LDFLAGS        += -lbsd
 INCLUDES        =
 INSTALL         = install -c
 INSTALL_PROGRAM = ${INSTALL}

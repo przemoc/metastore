@@ -407,6 +407,8 @@ usage(const char *arg0, const char *message)
 "  -c, --compare            Show differences between stored and real metadata\n"
 "  -s, --save               Save current metadata\n"
 "  -a, --apply              Apply stored metadata\n"
+"  -d, --dump               Dump stored (if no PATH is given) or real metadata\n"
+"                           (if PATH is present, e.g. ./) in human-readable form\n"
 "  -h, --help               Help message (this text)\n"
 "\n"
 "Valid OPTIONS are:\n"
@@ -427,6 +429,7 @@ static struct option long_options[] = {
 	{ "compare",           no_argument,       NULL, 'c' },
 	{ "save",              no_argument,       NULL, 's' },
 	{ "apply",             no_argument,       NULL, 'a' },
+	{ "dump",              no_argument,       NULL, 'd' },
 	{ "help",              no_argument,       NULL, 'h' },
 	{ "verbose",           no_argument,       NULL, 'v' },
 	{ "quiet",             no_argument,       NULL, 'q' },
@@ -451,7 +454,7 @@ main(int argc, char **argv)
 	i = 0;
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "csahvqmeEgf:",
+		c = getopt_long(argc, argv, "csadhvqmeEgf:",
 		                long_options, &option_index);
 		if (c == -1)
 			break;
@@ -459,6 +462,7 @@ main(int argc, char **argv)
 		case 'c': /* compare */           action |= ACTION_DIFF;  i++;   break;
 		case 's': /* save */              action |= ACTION_SAVE;  i++;   break;
 		case 'a': /* apply */             action |= ACTION_APPLY; i++;   break;
+		case 'd': /* dump */              action |= ACTION_DUMP;  i++;   break;
 		case 'h': /* help */              action |= ACTION_HELP;  i++;   break;
 		case 'v': /* verbose */           adjust_verbosity(1);           break;
 		case 'q': /* quiet */             adjust_verbosity(-1);          break;
@@ -489,7 +493,7 @@ main(int argc, char **argv)
 		usage(argv[0], NULL);
 
 	/* Perform action */
-	if (action & ACTIONS_READING) {
+	if (action & ACTIONS_READING && !(action == ACTION_DUMP && optind < argc)) {
 		mentries_fromfile(&stored, settings.metafile);
 		if (!stored) {
 			msg(MSG_CRITICAL, "Failed to load metadata from %s\n",
@@ -501,11 +505,11 @@ main(int argc, char **argv)
 	if (optind < argc) {
 		while (optind < argc)
 			mentries_recurse_path(argv[optind++], &real, &settings);
-	} else {
+	} else if (action != ACTION_DUMP) {
 		mentries_recurse_path(".", &real, &settings);
 	}
 
-	if (!real) {
+	if (!real && (action != ACTION_DUMP || optind < argc)) {
 		msg(MSG_CRITICAL,
 		    "Failed to load metadata from file system\n");
 		exit(EXIT_FAILURE);
@@ -524,6 +528,9 @@ main(int argc, char **argv)
 			fixup_emptydirs();
 		if (settings.do_removeemptydirs)
 			fixup_newemptydirs();
+		break;
+	case ACTION_DUMP:
+		mentries_dump(real ? real : stored);
 		break;
 	}
 

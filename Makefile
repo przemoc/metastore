@@ -19,7 +19,8 @@
 #
 CC              = gcc
 CFLAGS         += -g -Wall -pedantic -std=c99 -D_FILE_OFFSET_BITS=64 -O2
-LDFLAGS        += -lbsd
+LDFLAGS        +=
+LIBS           += -lbsd
 INCLUDES        =
 INSTALL         = install -c
 INSTALL_PROGRAM = ${INSTALL}
@@ -47,7 +48,7 @@ all: metastore
 
 
 metastore: $(OBJECTS)
-	$(LINK) -o $@ $^
+	$(LINK) -o $@ $^ $(LIBS)
 
 
 install: all

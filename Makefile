@@ -30,10 +30,16 @@ LINK            = $(CC) $(CFLAGS) $(LDFLAGS)
 OBJECTS         = utils.o metastore.o metaentry.o
 HEADERS         = utils.h metastore.h metaentry.h
 
+PROJ_DIR       := $(dir $(lastword $(MAKEFILE_LIST)))
+SRCS_DIR       := $(PROJ_DIR)src/
+
 DESTDIR        ?=
 prefix         	= /usr
 usrbindir       = ${prefix}/bin
 mandir          = ${prefix}/share/man
+
+vpath %.c $(SRCS_DIR)
+vpath %.h $(SRCS_DIR)
 
 #
 # Targets

@@ -22,16 +22,18 @@ CFLAGS         += -g -Wall -pedantic -std=c99 -D_FILE_OFFSET_BITS=64 -O2
 LDFLAGS        +=
 LIBS           += -lbsd
 INCLUDES        =
-INSTALL         = install -c
-INSTALL_PROGRAM = ${INSTALL}
-INSTALL_DATA    = ${INSTALL} -m 644
+INSTALL         = install
+INSTALL_PROGRAM = ${INSTALL} -c
+INSTALL_DATA    = ${INSTALL} -c -m 644
 COMPILE         = $(CC) $(INCLUDES) $(CFLAGS) $(CPPFLAGS)
 LINK            = $(CC) $(CFLAGS) $(LDFLAGS)
 OBJECTS         = utils.o metastore.o metaentry.o
 HEADERS         = utils.h metastore.h metaentry.h
+MANPAGES        = man1/metastore.1
 
 PROJ_DIR       := $(dir $(lastword $(MAKEFILE_LIST)))
 SRCS_DIR       := $(PROJ_DIR)src/
+MANS_DIR       := $(PROJ_DIR)
 
 DESTDIR        ?=
 prefix         	= /usr
@@ -40,6 +42,7 @@ mandir          = ${prefix}/share/man
 
 vpath %.c $(SRCS_DIR)
 vpath %.h $(SRCS_DIR)
+vpath %.1 $(MANS_DIR)
 
 #
 # Targets
@@ -57,13 +60,15 @@ metastore: $(OBJECTS)
 	$(LINK) -o $@ $^ $(LIBS)
 
 
-install: all
-	$(INSTALL_DATA) -D metastore.1 $(DESTDIR)$(mandir)/man1/metastore.1
-	$(INSTALL_PROGRAM) -D metastore $(DESTDIR)$(usrbindir)/metastore
+install: all $(MANPAGES)
+	$(INSTALL) -d $(DESTDIR)$(mandir)/man1/
+	$(INSTALL_DATA) $(filter %.1,$^) $(DESTDIR)$(mandir)/man1/
+	$(INSTALL) -d $(DESTDIR)$(usrbindir)/
+	$(INSTALL_PROGRAM) metastore $(DESTDIR)$(usrbindir)/
 
 
 uninstall:
-	- rm -f $(DESTDIR)$(mandir)/man1/metastore.1
+	- rm -f $(addprefix $(DESTDIR)$(mandir)/,$(MANPAGES))
 	- rm -f $(DESTDIR)$(usrbindir)/metastore
 
 

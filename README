@@ -13,10 +13,6 @@ tree and make sure that "everything" (e.g. xattrs, mtime, owner, group)
 is stored along with the files.
 
 
-This metastore is unofficial continuation of the original metastore
-application created by David Härdeman (who no longer maintains it).
-
-
 Stored metadata
 ---------------
 

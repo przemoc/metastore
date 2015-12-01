@@ -39,7 +39,7 @@ SRCS_DIR       := $(PROJ_DIR)src/
 MANS_DIR       := $(PROJ_DIR)
 
 DESTDIR        ?=
-PREFIX          = /usr
+PREFIX          = /usr/local
 EXECPREFIX      = $(PREFIX)
 DATAROOTDIR     = ${PREFIX}/share
 BINDIR          = ${EXECPREFIX}/bin

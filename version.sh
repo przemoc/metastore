@@ -1,6 +1,6 @@
 #!/bin/sh
 
-METASTORE_PRETAG_VER=1.0.999
+METASTORE_PRETAG_VER=v1.0.999
 
 cd "${0%/*}" && \
 METASTORE_VER="$(\

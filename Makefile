@@ -17,6 +17,8 @@
 #
 # Generic settings
 #
+PROJ_DIR       := $(dir $(lastword $(MAKEFILE_LIST)))
+
 CC              = gcc
 CFLAGS         += -g -Wall -pedantic -std=c99 -D_FILE_OFFSET_BITS=64 -O2
 LDFLAGS        +=
@@ -31,7 +33,6 @@ OBJECTS         = utils.o metastore.o metaentry.o
 HEADERS         = utils.h metastore.h metaentry.h
 MANPAGES        = man1/metastore.1
 
-PROJ_DIR       := $(dir $(lastword $(MAKEFILE_LIST)))
 SRCS_DIR       := $(PROJ_DIR)src/
 MANS_DIR       := $(PROJ_DIR)
 

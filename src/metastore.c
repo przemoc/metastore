@@ -392,6 +392,15 @@ fixup_newemptydirs(void)
 	}
 }
 
+/* Outputs version information and exits */
+static void
+version(void)
+{
+	msg(MSG_QUIET, "metastore %s\n", METASTORE_VER);
+
+	exit(EXIT_SUCCESS);
+}
+
 /* Prints usage message and exits */
 static void
 usage(const char *arg0, const char *message)
@@ -409,6 +418,7 @@ usage(const char *arg0, const char *message)
 "  -a, --apply              Apply stored metadata\n"
 "  -d, --dump               Dump stored (if no PATH is given) or real metadata\n"
 "                           (if PATH is present, e.g. ./) in human-readable form\n"
+"  -V, --version            Output version information and exit\n"
 "  -h, --help               Help message (this text)\n"
 "\n"
 "Valid OPTIONS are:\n"
@@ -430,6 +440,7 @@ static struct option long_options[] = {
 	{ "save",              no_argument,       NULL, 's' },
 	{ "apply",             no_argument,       NULL, 'a' },
 	{ "dump",              no_argument,       NULL, 'd' },
+	{ "version",           no_argument,       NULL, 'V' },
 	{ "help",              no_argument,       NULL, 'h' },
 	{ "verbose",           no_argument,       NULL, 'v' },
 	{ "quiet",             no_argument,       NULL, 'q' },
@@ -454,7 +465,7 @@ main(int argc, char **argv)
 	i = 0;
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "csadhvqmeEgf:",
+		c = getopt_long(argc, argv, "csadVhvqmeEgf:",
 		                long_options, &option_index);
 		if (c == -1)
 			break;
@@ -463,6 +474,7 @@ main(int argc, char **argv)
 		case 's': /* save */              action |= ACTION_SAVE;  i++;   break;
 		case 'a': /* apply */             action |= ACTION_APPLY; i++;   break;
 		case 'd': /* dump */              action |= ACTION_DUMP;  i++;   break;
+		case 'V': /* version */           action |= ACTION_VER;   i++;   break;
 		case 'h': /* help */              action |= ACTION_HELP;  i++;   break;
 		case 'v': /* verbose */           adjust_verbosity(1);           break;
 		case 'q': /* quiet */             adjust_verbosity(-1);          break;
@@ -488,6 +500,9 @@ main(int argc, char **argv)
 	/* Make sure --remove-empty-dirs is only used with apply */
 	if (settings.do_removeemptydirs && action != ACTION_APPLY)
 		usage(argv[0], "--remove-empty-dirs is only valid with --apply");
+
+	if (action == ACTION_VER)
+		version();
 
 	if (action == ACTION_HELP)
 		usage(argv[0], NULL);

@@ -34,6 +34,7 @@
 #define ACTION_DIFF  0x02
 #define ACTION_DUMP  0x04
 #define ACTION_SAVE  0x10
+#define ACTION_VER   0x08
 #define ACTION_HELP  0x80
 
 /* Action masks */

@@ -18,9 +18,11 @@
 # Generic settings
 #
 PROJ_DIR       := $(dir $(lastword $(MAKEFILE_LIST)))
+METASTORE_VER  := $(shell "$(PROJ_DIR)"/version.sh)
 
 CC              = gcc
 CFLAGS         += -g -Wall -pedantic -std=c99 -D_FILE_OFFSET_BITS=64 -O2
+CFLAGS         += -DMETASTORE_VER="\"$(METASTORE_VER)\""
 LDFLAGS        +=
 LIBS           += -lbsd
 INCLUDES        =

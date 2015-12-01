@@ -39,9 +39,11 @@ SRCS_DIR       := $(PROJ_DIR)src/
 MANS_DIR       := $(PROJ_DIR)
 
 DESTDIR        ?=
-prefix         	= /usr
-usrbindir       = ${prefix}/bin
-mandir          = ${prefix}/share/man
+PREFIX          = /usr
+EXECPREFIX      = $(PREFIX)
+DATAROOTDIR     = ${PREFIX}/share
+BINDIR          = ${EXECPREFIX}/bin
+MANDIR          = ${DATAROOTDIR}/man
 
 vpath %.c $(SRCS_DIR)
 vpath %.h $(SRCS_DIR)
@@ -64,15 +66,15 @@ metastore: $(OBJECTS)
 
 
 install: all $(MANPAGES)
-	$(INSTALL) -d $(DESTDIR)$(mandir)/man1/
-	$(INSTALL_DATA) $(filter %.1,$^) $(DESTDIR)$(mandir)/man1/
-	$(INSTALL) -d $(DESTDIR)$(usrbindir)/
-	$(INSTALL_PROGRAM) metastore $(DESTDIR)$(usrbindir)/
+	$(INSTALL) -d $(DESTDIR)$(MANDIR)/man1/
+	$(INSTALL_DATA) $(filter %.1,$^) $(DESTDIR)$(MANDIR)/man1/
+	$(INSTALL) -d $(DESTDIR)$(BINDIR)/
+	$(INSTALL_PROGRAM) metastore $(DESTDIR)$(BINDIR)/
 
 
 uninstall:
-	- rm -f $(addprefix $(DESTDIR)$(mandir)/,$(MANPAGES))
-	- rm -f $(DESTDIR)$(usrbindir)/metastore
+	- rm -f $(addprefix $(DESTDIR)$(MANDIR)/,$(MANPAGES))
+	- rm -f $(DESTDIR)$(BINDIR)/metastore
 
 
 clean:

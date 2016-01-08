@@ -32,8 +32,12 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <errno.h>
-#include <bsd/string.h>
 #include <time.h>
+
+#include <sys/param.h>
+#ifndef BSD
+# include <bsd/string.h>
+#endif
 
 #include "metastore.h"
 #include "metaentry.h"

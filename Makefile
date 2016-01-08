@@ -19,12 +19,21 @@
 #
 PROJ_DIR       := $(dir $(lastword $(MAKEFILE_LIST)))
 METASTORE_VER  := $(shell "$(PROJ_DIR)"/version.sh)
+UNAME_S        := $(shell uname -s)
 
 CC              = gcc
 CFLAGS         += -g -Wall -pedantic -std=c99 -D_FILE_OFFSET_BITS=64 -O2
 CFLAGS         += -DMETASTORE_VER="\"$(METASTORE_VER)\""
 LDFLAGS        +=
+
+ifeq ($(findstring BSD,$(UNAME_S)),)
+ifneq (DragonFly,$(UNAME_S))
+ifneq (Darwin,$(UNAME_S))
 LIBS           += -lbsd
+endif
+endif
+endif
+
 INCLUDES        =
 INSTALL         = install
 INSTALL_PROGRAM = ${INSTALL} -c

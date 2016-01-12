@@ -266,11 +266,14 @@ mentry_create(const char *path)
 			continue;
 
 		mentry->xattr_names[i] = xstrdup(attr);
+		mentry->xattr_values[i] = NULL;
+
 		vsize = getxattr(path, attr, NULL, 0);
 		if (vsize < 0) {
 			msg(MSG_ERROR, "getxattr failed for %s: %s\n",
 			    path, strerror(errno));
 			free(list);
+			mentry->xattrs = i + 1;
 			mentry_free(mentry);
 			return NULL;
 		}
@@ -283,6 +286,7 @@ mentry_create(const char *path)
 			msg(MSG_ERROR, "getxattr failed for %s: %s\n",
 			    path, strerror(errno));
 			free(list);
+			mentry->xattrs = i + 1;
 			mentry_free(mentry);
 			return NULL;
 		}

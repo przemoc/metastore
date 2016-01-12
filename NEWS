@@ -4,6 +4,9 @@ Latest stuff                          (planned release date: 2015-09-??)
  * BUGFIX: Applying metadata with extended attribute having null byte
            in value zeroed all following bytes of this xattr value.
 
+ * BUGFIX: Reading extended attributes while not having permissions
+           resulted in crash.
+
  * Empty directories not present in metadata can be now removed when
    applying stored metadata if -E / --remove-empty-dirs option is used.
 

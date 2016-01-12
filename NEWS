@@ -38,6 +38,11 @@ debian patches, including debian/ directory and adding new option -
 not ignoring .git directories. This version also didn't have any formal
 releases, only new entries were added in debian/changelog file.
 
+ * BUGFIX: Storing metadata with extended attribute without value led to
+           false error message and trimmed metadata.
+
+ * .git directories aren't ignored if -g / --git option is used.
+
 
 ### v1 - debian package                                      (2010-2012)
 

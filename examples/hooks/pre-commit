@@ -27,6 +27,12 @@ exit_on_fail() {
 exit_on_fail \
 	metastore -s -f "$MSFILE"
 
+# If it's first metastore commit, store again to include $MSFILE in $MSFILE.
+if ! git-ls-tree --name-only HEAD 2>/dev/null | grep -Fqx "$MSFILE"; then
+	exit_on_fail \
+		metastore -s -f "$MSFILE"
+fi
+
 if [ ! -e "$MSFILE" ]; then
 	echo "\"$MSFILE\" missing" >&2
 	exit 1

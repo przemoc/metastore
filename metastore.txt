@@ -1,0 +1,88 @@
+metastore(1)                General Commands Manual               metastore(1)
+
+
+
+NAME
+       metastore - stores and restores filesystem metadata
+
+SYNOPSIS
+       metastore ACTION [OPTION...] [PATH...]
+
+DESCRIPTION
+       Stores  or  restores  metadata  (owner,  group, permissions, xattrs and
+       optionally mtime) for a filesystem tree. This can be used  to  preserve
+       the  metadata in situations where it is usually not stored (git and tar
+       for example) or as a tripwire like mechanism to detect any  changes  to
+       metadata.  Note  that e.g.  SELinux stores its labels in xattrs so care
+       should be taken when applying stored metadata to make sure that  system
+       security is not compromised.
+
+ACTIONS
+       -c, --compare
+              Shows the difference between the stored and real metadata.
+
+       -s, --save
+              Saves  the  current  metadata to ./.metadata or to the specified
+              file (see --file option below).
+
+       -a, --apply
+              Attempts to apply the stored metadata to the file system.
+
+       -d, --dump
+              Dumps stored (if no PATH is given) or real metadata (if PATH  is
+              present, e.g. ./) in human-readable form.
+
+              This  action  is  meant  only as a helpful debugging facility or
+              merge conflict helper. Do not ever compare its output  generated
+              using different metastore version. Do not rely on current output
+              format (especially in batch scripts), because it may  change  in
+              future without prior notice.
+
+       -h, --help
+              Prints a help message and exits.
+
+OPTIONS
+       -v, --verbose
+              Causes metastore to print more verbose messages. Can be repeated
+              more than once for even more verbosity.
+
+       -q, --quiet
+              Causes metastore to print less verbose messages. Can be repeated
+              more than once for even less verbosity.
+
+       -m, --mtime
+              Causes metastore to also take mtime into account for the compare
+              or apply actions.
+
+       -e, --empty-dirs
+              Also attempts to recreate missing empty directories. May be use‐
+              ful  where  empty  directories  are  not tracked (e.g. by git or
+              cvs).  Only works in combination with the apply option.
+
+       -E, --remove-empty-dirs
+              Also attempts to remove empty directories missing from the meta‐
+              data.  May  be  useful  where  empty directories are not tracked
+              (e.g. by git or cvs).  Only works in combination with the  apply
+              option.
+
+       -g, --git
+              Prevents metastore from omitting .git directories.
+
+       -f <file>, --file <file>
+              Causes  the  metadata  to be saved, read from the specified file
+              rather than ./.metadata.
+
+PATHS
+       If no path is specified, metastore will use the  current  directory  as
+       the  basis  for  the  actions. This is the recommended way of executing
+       metastore.  Alternatively, one or more paths can be specified and  they
+       will each be examined. Later invocations should be made using the exact
+       same paths to ensure that the stored metadata is interpreted correctly.
+
+AUTHOR
+       Written by David Härdeman <david@hardeman.nu>
+
+
+
+
+                                September 2015                    metastore(1)

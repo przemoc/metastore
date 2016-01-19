@@ -28,7 +28,7 @@ metastore stores following metadata in its files:
 Usage
 -----
 
-See man1/metastore.1 file, which is the manual page.
+See metastore.txt file, which is plain-text version of the manual page.
 
 
 File format

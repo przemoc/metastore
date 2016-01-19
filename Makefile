@@ -74,6 +74,10 @@ metastore: $(OBJECTS)
 	$(LINK) -o $@ $^ $(LIBS)
 
 
+metastore.txt: $(MANPAGES)
+	groff -mandoc -Kutf8 -Tutf8 $^ | col -bx >$@
+
+
 install: all $(MANPAGES)
 	$(INSTALL) -d $(DESTDIR)$(MANDIR)/man1/
 	$(INSTALL_DATA) $(filter %.1,$^) $(DESTDIR)$(MANDIR)/man1/

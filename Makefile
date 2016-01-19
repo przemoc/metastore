@@ -42,21 +42,25 @@ COMPILE         = $(CC) $(INCLUDES) $(CFLAGS) $(CPPFLAGS)
 LINK            = $(CC) $(CFLAGS) $(LDFLAGS)
 OBJECTS         = utils.o metastore.o metaentry.o
 HEADERS         = utils.h metastore.h metaentry.h
+DOCFILES        = AUTHORS FILEFORMAT LICENSE.GPLv2 NEWS README metastore.txt
 MANPAGES        = man1/metastore.1
 
 SRCS_DIR       := $(PROJ_DIR)src/
 MANS_DIR       := $(PROJ_DIR)
+DOCS_DIR       := $(PROJ_DIR)
 
 DESTDIR        ?=
 PREFIX          = /usr/local
 EXECPREFIX      = $(PREFIX)
 DATAROOTDIR     = ${PREFIX}/share
 BINDIR          = ${EXECPREFIX}/bin
+DOCDIR          = ${DATAROOTDIR}/doc/metastore
 MANDIR          = ${DATAROOTDIR}/man
 
 vpath %.c $(SRCS_DIR)
 vpath %.h $(SRCS_DIR)
 vpath %.1 $(MANS_DIR)
+$(foreach file,$(DOCFILES),$(eval vpath $(file) $(DOCS_DIR)))
 
 #
 # Targets
@@ -78,7 +82,10 @@ metastore.txt: $(MANPAGES)
 	groff -mandoc -Kutf8 -Tutf8 $^ | col -bx >$@
 
 
-install: all $(MANPAGES)
+install: all $(DOCFILES) $(MANPAGES)
+	$(INSTALL) -d $(DESTDIR)$(DOCDIR)/
+	$(INSTALL_DATA) $(filter-out all %.1,$^) $(DESTDIR)$(DOCDIR)
+	cp -rf $(DOCS_DIR)examples $(DESTDIR)$(DOCDIR)
 	$(INSTALL) -d $(DESTDIR)$(MANDIR)/man1/
 	$(INSTALL_DATA) $(filter %.1,$^) $(DESTDIR)$(MANDIR)/man1/
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)/
@@ -86,6 +93,9 @@ install: all $(MANPAGES)
 
 
 uninstall:
+	- rm -f $(addprefix $(DESTDIR)$(DOCDIR)/,$(DOCFILES))
+	- rm -rf $(DESTDIR)$(DOCDIR)/examples
+	- rmdir $(DESTDIR)$(DOCDIR)
 	- rm -f $(addprefix $(DESTDIR)$(MANDIR)/,$(MANPAGES))
 	- rm -f $(DESTDIR)$(BINDIR)/metastore
 

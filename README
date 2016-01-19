@@ -70,6 +70,8 @@ Run `make install`.  Default settings for installation are:
                    (/usr/local/bin)
      DATAROOTDIR = ${PREFIX}/share
                    (/usr/local/share)
+     DOCDIR      = ${DATAROOTDIR}/doc/metastore
+                   (/usr/local/share/doc/metastore)
      MANDIR      = ${DATAROOTDIR}/man
                    (/usr/local/share/man)
 

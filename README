@@ -63,10 +63,15 @@ Installation
 Run `make install`.  Default settings for installation are:
 
      PREFIX      = /usr/local
-     EXECPREFIX  = ${PREFIX}           (/usr/local)
-     BINDIR      = ${EXECPREFIX}/bin   (/usr/local/bin)
-     DATAROOTDIR = ${PREFIX}/share     (/usr/local/share)
-     MANDIR      = ${DATAROOTDIR}/man  (/usr/local/share/man)
+
+     EXECPREFIX  = ${PREFIX}
+                   (/usr/local)
+     BINDIR      = ${EXECPREFIX}/bin
+                   (/usr/local/bin)
+     DATAROOTDIR = ${PREFIX}/share
+                   (/usr/local/share)
+     MANDIR      = ${DATAROOTDIR}/man
+                   (/usr/local/share/man)
 
 You can always change them, e.g.:
 

@@ -30,6 +30,15 @@ Usage
 
 See metastore.txt file, which is plain-text version of the manual page.
 
+If you want to use metastore within git repository, then consider
+copying exemplary scripts from examples/hooks/ directory to hooks
+subdirectory in your git directory, and make them executable.
+You can also tune them if it's necessary. But.
+Before using, please read the warning in the comments of pre-commit hook.
+Mind that merge conflicts can only be solved manually, because metastore
+file is binary in its current form (there's a plan to fix it in future).
+Dump action can be really helpful in such cases.
+
 
 File format
 -----------

@@ -42,6 +42,6 @@ if [ "$REPLY" != "y" ]; then
 fi
 
 exit_on_fail \
-	metastore -a $MSFLAGS -f "$MSFILE"
+	metastore -a $MSFLAGS -e -E -f "$MSFILE"
 
 exit 0

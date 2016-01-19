@@ -99,6 +99,20 @@ or feature requests.
 
 https://github.com/przemoc/metastore/issues
 
+If you're sending a bug report, then please provide some basic info:
+
+- What system do you have?  
+  (`uname -a`, `lsb_release -drc`)
+- What gcc version have you used for building metastore?  
+  (`gcc -v`)
+- Do you use any custom FLAGS during build?  
+  (`set | grep FLAGS=`)
+- What libc implementation and version are you using?
+- What metastore version are you using?  
+  (`metastore -V`)
+- What filesystem do you use and how it is mounted?  
+  (`mount | grep $(df . | awk 'NR==2{print$1}')`)
+
 
 License
 -------

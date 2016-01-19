@@ -2,6 +2,17 @@
 #
 # An example hook script to store metadata information using
 # metastore on each commit.
+#
+# WARNING:
+#
+# If the commit is aborted (e.g. by not entering any synopsis),
+# then updated metastore file (.metadata by default) is not reverted,
+# so its new version remains in the index.
+# To undo any changes in metastore file written since HEAD commit,
+# you may want to reset and checkout HEAD version of the file:
+#
+#     git reset HEAD -- .metadata
+#     git checkout HEAD -- .metadata
 
 MSFILE=".metadata"
 

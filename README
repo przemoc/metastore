@@ -28,51 +28,60 @@ metastore stores following metadata in its files:
 Usage
 -----
 
-See the manual page (metastore.1) for details on usage.
+See man1/metastore.1 file, which is the manual page.
 
 
 File format
 -----------
 
-Following sections explain internals of metastore file (.metadata).
+See FILEFORMAT file, which describes internals of metastore file.
 
 
-### Data types
+Requirements
+------------
 
-    CSTRING     = NUL-terminated binary string
-    BSTRING(N)  = binary string of length N
-    INT(N)      = N byte integer in big endian byte order
-
-
-### File layout
-
-    HEADER
-    N * ENTRY
+- Linux
+- GNU make
+- C99 compiler, like gcc or clang
+- libbsd
 
 
-### HEADER format
+Building
+--------
 
-    BSTRING(10) - Magic header - "MeTaSt00r3"
-    BSTRING(8)  - Version - "\0\0\0\0\0\0\0\0" (currently)
+Simply run `make` from project's root directory.
+
+Building out-of-tree is supported out-of-the-box. Go to your chosen
+build directory and run there:
+
+    $ make -f path/to/metastore/Makefile
 
 
-### ENTRY format
+Installation
+------------
 
-    CSTRING     - Path  (absolute or relative)
-    CSTRING     - Owner (owner name, not uid)
-    CSTRING     - Group (group name, not gid)
+Run `make install`.  Default settings for installation are:
 
-    INT(8)      - Mtime (seconds)
-    INT(8)      - Mtime (nanoseconds)
-    INT(2)      - Mode  (st_mode from struct stat st_mode AND 0177777,
-                         i.e. unix permissions and type of file)
+     PREFIX      = /usr/local
+     EXECPREFIX  = ${PREFIX}           (/usr/local)
+     BINDIR      = ${EXECPREFIX}/bin   (/usr/local/bin)
+     DATAROOTDIR = ${PREFIX}/share     (/usr/local/share)
+     MANDIR      = ${DATAROOTDIR}/man  (/usr/local/share/man)
 
-    INT(4)      - num_xattrs
-    FOR (i = 0; i < num_xattrs; i++) {
-        CSTRING            - xattr name
-        INT(4)             - xattrlen
-        BSTRING(xattrlen)  - xattr value
-    }
+You can always change them, e.g.:
+
+    $ make install PREFIX=/usr
+
+DESTDIR is also supported.
+
+
+Reporing issues
+---------------
+
+Please use the issue tracker provided by GitHub to send bug reports
+or feature requests.
+
+https://github.com/przemoc/metastore/issues
 
 
 License
@@ -80,12 +89,3 @@ License
 
 The project is licensed under the terms of the GNU GPL v2 only license.
 See LICENSE.GPLv2 file for the full license text.
-
-
-Bug reports
------------
-
-Please use the issue tracker provided by GitHub to send bug reports
-or feature requests.
-
-https://github.com/przemoc/metastore/issues

@@ -1,0 +1,32 @@
+Old times                                                    (2007-2014)
+------------------------------------------------------------------------
+
+Old times refer to alleged version 1 of metastore, which was never
+properly released or tagged.
+
+
+### v1 - przemoc's unofficial continuation                   (2012-2014)
+
+In 2012 unofficial continuation has been proclaimed, merging existing
+debian patches, including debian/ directory and adding new option -
+not ignoring .git directories. This version also didn't have any formal
+releases, only new entries were added in debian/changelog file.
+
+ * BUGFIX: Storing metadata with extended attribute without value led to
+           false error message and trimmed metadata.
+
+ * .git directories aren't ignored if -g / --git option is used.
+
+
+### v1 - debian package                                      (2010-2012)
+
+In 2010 metastore debian package started containing patches that didn't
+get into official metastore repository.
+
+
+### unreleased v1                                            (2007-2008)
+
+David Härdeman wrote core of metastore in May 2007. His last commit was
+in June 2008. He never officially released this software in any form
+denoting its version number. His git repository (which no longer works)
+was the only official way to obtain the source code.

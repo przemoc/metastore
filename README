@@ -115,6 +115,22 @@ If you're sending a bug report, then please provide some basic info:
   (`mount | grep $(df . | awk 'NR==2{print$1}')`)
 
 
+Mailing list
+------------
+
+metastore has one official read-only mailing list dedicated to
+announcements like new version releases or other important updates.
+
+You can subscribe it using following web page:
+https://www.freelists.org/list/metastore-announce
+
+or by sending email to metastore-announce-request@freelists.org
+with `subscribe` in the Subject field.
+
+Archive for metastore-announce mailing list is available at:
+https://www.freelists.org/archive/metastore-announce
+
+
 License
 -------
 

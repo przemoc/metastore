@@ -5,8 +5,9 @@ metastore is a tool to store the metadata of files/directories/links in
 a file tree to a separate file and to later compare and apply the stored
 metadata to said file tree.
 
-It was written as a supplement to git which does not store all metadata,
-making it unsuitable for e.g. storing /etc in a repository.
+It was originally written as a supplement to git, which does not store
+all metadata, making it unsuitable for e.g. storing /etc in a
+repository.
 
 metastore can also be helpful if you want to create a tarball of a file
 tree and make sure that "everything" (e.g. xattrs, mtime, owner, group)

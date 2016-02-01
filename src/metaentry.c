@@ -657,7 +657,7 @@ mentries_dump(struct metahash *mhash)
 			       mentry->owner, mentry->group,
 			       date, mentry->mtimensec, zone,
 			       mentry->path, S_ISDIR(mentry->mode) ? "/" : "");
-			for (int i = 0; i < mentry->xattrs; i++) {
+			for (unsigned i = 0; i < mentry->xattrs; i++) {
 				printf("\t\t\t\t%s%s\t%s=",
 				       mentry->path, S_ISDIR(mentry->mode) ? "/" : "",
 				       mentry->xattr_names[i]);

@@ -246,8 +246,9 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 			msg(MSG_NORMAL, "%s:\tadding xattr %s\n",
 			    stored->path, stored->xattr_names[i]);
 			if (lsetxattr(stored->path, stored->xattr_names[i],
-				      stored->xattr_values[i],
-				      stored->xattr_lvalues[i], XATTR_CREATE))
+			              stored->xattr_values[i],
+			              stored->xattr_lvalues[i], XATTR_CREATE)
+			   )
 				msg(MSG_DEBUG, "\tlsetxattr failed: %s\n",
 				    strerror(errno));
 		}
@@ -551,4 +552,3 @@ main(int argc, char **argv)
 
 	exit(EXIT_SUCCESS);
 }
-

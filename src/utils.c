@@ -300,4 +300,3 @@ xgetpwuid(uid_t uid)
 
 	return NULL;
 }
-

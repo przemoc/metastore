@@ -29,34 +29,35 @@ struct metaentry {
 	struct metaentry *next; /* For the metahash chains */
 	struct metaentry *list; /* For creating additional lists of entries */
 
-	char *path;
-	unsigned int pathlen;
+	char    *path;
+	unsigned pathlen;
 
-	char *owner;
-	char *group;
-        mode_t mode;
-	time_t mtime;
-        long mtimensec;
+	char    *owner;
+	char    *group;
+	mode_t   mode;
+	time_t   mtime;
+	long     mtimensec;
 
-	unsigned int xattrs;
-	char **xattr_names;
+	unsigned xattrs;
+	char   **xattr_names;
 	ssize_t *xattr_lvalues;
-	char **xattr_values;
+	char   **xattr_values;
 };
 
 #define HASH_INDEXES 1024
 
 /* Data structure to hold a number of metadata entries */
 struct metahash {
-        struct metaentry *bucket[HASH_INDEXES];
-        unsigned int count;
+	struct metaentry *bucket[HASH_INDEXES];
+	unsigned count;
 };
 
 /* Create a metaentry for the file/dir/etc at path */
 struct metaentry *mentry_create(const char *path);
 
 /* Recurses opath and adds metadata entries to the metaentry list */
-void mentries_recurse_path(const char *opath, struct metahash **mhash, msettings *st);
+void mentries_recurse_path(const char *opath, struct metahash **mhash,
+                           msettings *st);
 
 /* Stores a metaentry list to a file */
 void mentries_tofile(const struct metahash *mhash, const char *path);
@@ -81,8 +82,8 @@ int mentry_find_xattr(struct metaentry *haystack,
 
 /* Compares two metaentries and returns an int with a bitmask of differences */
 int mentry_compare(struct metaentry *left,
-		   struct metaentry *right,
-		   msettings *st);
+                   struct metaentry *right,
+                   msettings *st);
 
 /* Compares lists of real and stored metadata and calls pfunc for each */
 void mentries_compare(struct metahash *mhashreal,

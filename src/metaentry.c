@@ -79,10 +79,10 @@ mhash_alloc()
 }
 
 /* Generates a hash key (using djb2) */
-static unsigned int
+static unsigned
 hash(const char *str)
 {
-	unsigned int hash = 5381;
+	unsigned hash = 5381;
 	int c;
 
 	while ((c = *str++))
@@ -106,7 +106,7 @@ struct metaentry *
 mentry_find(const char *path, struct metahash *mhash)
 {
 	struct metaentry *base;
-	unsigned int key;
+	unsigned key;
 
 	if (!mhash) {
 		msg(MSG_ERROR, "%s called with empty hash table\n", __FUNCTION__);
@@ -126,7 +126,7 @@ mentry_find(const char *path, struct metahash *mhash)
 static void
 mentry_insert(struct metaentry *mentry, struct metahash *mhash)
 {
-	unsigned int key;
+	unsigned key;
 
 	key = hash(mentry->path);
 	mentry->next = mhash->bucket[key];
@@ -297,7 +297,7 @@ mentry_create(const char *path)
 	return mentry;
 }
 
-/* Cleans up a path and makes it relative to current working dir unless it is absolute */
+/* Cleans up a path and makes it relative to cwd unless it is absolute */
 static char *
 normalize_path(const char *orig)
 {
@@ -358,7 +358,8 @@ mentries_recurse(const char *path, struct metahash *mhash, msettings *st)
 		while ((dent = readdir(dir))) {
 			if (!strcmp(dent->d_name, ".") ||
 			    !strcmp(dent->d_name, "..") ||
-			    (!st->do_git && !strcmp(dent->d_name, ".git")))
+			    (!st->do_git && !strcmp(dent->d_name, ".git"))
+			   )
 				continue;
 			snprintf(tpath, PATH_MAX, "%s/%s", path, dent->d_name);
 			tpath[PATH_MAX - 1] = '\0';
@@ -413,7 +414,7 @@ mentries_tofile(const struct metahash *mhash, const char *path)
 				write_string(mentry->xattr_names[i], to);
 				write_int(mentry->xattr_lvalues[i], 4, to);
 				write_binary_string(mentry->xattr_values[i],
-						    mentry->xattr_lvalues[i], to);
+				                    mentry->xattr_lvalues[i], to);
 			}
 		}
 	}
@@ -455,7 +456,7 @@ mentries_fromfile(struct metahash **mhash, const char *path)
 	}
 
 	mmapstart = mmap(NULL, (size_t)sbuf.st_size, PROT_READ,
-			 MAP_SHARED, fd, 0);
+	                 MAP_SHARED, fd, 0);
 	if (mmapstart == MAP_FAILED) {
 		msg(MSG_CRITICAL, "Unable to mmap %s: %s\n",
 		    path, strerror(errno));
@@ -491,28 +492,25 @@ mentries_fromfile(struct metahash **mhash, const char *path)
 		mentry->mtime = (time_t)read_int(&ptr, 8, max);
 		mentry->mtimensec = (time_t)read_int(&ptr, 8, max);
 		mentry->mode = (mode_t)read_int(&ptr, 2, max);
-		mentry->xattrs = (unsigned int)read_int(&ptr, 4, max);
+		mentry->xattrs = (unsigned)read_int(&ptr, 4, max);
 
 		if (!mentry->xattrs) {
 			mentry_insert(mentry, *mhash);
 			continue;
 		}
 
-		mentry->xattr_names = xmalloc(mentry->xattrs *
-				      sizeof(char *));
-		mentry->xattr_lvalues = xmalloc(mentry->xattrs *
-					sizeof(int));
-		mentry->xattr_values = xmalloc(mentry->xattrs *
-				       sizeof(char *));
+		mentry->xattr_names   = xmalloc(mentry->xattrs * sizeof(char *));
+		mentry->xattr_lvalues = xmalloc(mentry->xattrs * sizeof(int));
+		mentry->xattr_values  = xmalloc(mentry->xattrs * sizeof(char *));
 
 		for (i = 0; i < mentry->xattrs; i++) {
 			mentry->xattr_names[i] = read_string(&ptr, max);
-			mentry->xattr_lvalues[i] =
-				(int)read_int(&ptr, 4, max);
-			mentry->xattr_values[i] =
-				read_binary_string(&ptr,
-						   mentry->xattr_lvalues[i],
-						   max);
+			mentry->xattr_lvalues[i] = (int)read_int(&ptr, 4, max);
+			mentry->xattr_values[i] = read_binary_string(
+			                           &ptr,
+			                           mentry->xattr_lvalues[i],
+			                           max
+			                          );
 		}
 		mentry_insert(mentry, *mhash);
 	}
@@ -535,7 +533,8 @@ mentry_find_xattr(struct metaentry *haystack, struct metaentry *needle,
 		if (haystack->xattr_lvalues[i] != needle->xattr_lvalues[n])
 			return -1;
 		if (bcmp(haystack->xattr_values[i], needle->xattr_values[n],
-			 needle->xattr_lvalues[n]))
+		         needle->xattr_lvalues[n])
+		   )
 			return -1;
 		return i;
 	}
@@ -553,8 +552,9 @@ mentry_compare_xattr(struct metaentry *left, struct metaentry *right)
 
 	/* Make sure all xattrs in left are found in right and vice versa */
 	for (i = 0; i < left->xattrs; i++) {
-		if (mentry_find_xattr(right, left, i) < 0 ||
-		    mentry_find_xattr(left, right, i) < 0) {
+		if (   mentry_find_xattr(right, left, i) < 0
+		    || mentry_find_xattr(left, right, i) < 0
+		   ) {
 			return 1;
 		}
 	}
@@ -589,8 +589,9 @@ mentry_compare(struct metaentry *left, struct metaentry *right, msettings *st)
 		retval |= DIFF_TYPE;
 
 	if (st->do_mtime && strcmp(left->path, st->metafile) &&
-	    (left->mtime != right->mtime ||
-	     left->mtimensec != right->mtimensec))
+	    (   left->mtime     != right->mtime
+	     || left->mtimensec != right->mtimensec)
+	   )
 		retval |= DIFF_MTIME;
 
 	if (mentry_compare_xattr(left, right)) {
@@ -604,10 +605,10 @@ mentry_compare(struct metaentry *left, struct metaentry *right, msettings *st)
 /* Compares lists of real and stored metadata and calls pfunc for each */
 void
 mentries_compare(struct metahash *mhashreal,
-		 struct metahash *mhashstored,
-		 void (*pfunc)
-		 (struct metaentry *real, struct metaentry *stored, int cmp),
-		 msettings *st)
+                 struct metahash *mhashstored,
+                 void (*pfunc)
+                 (struct metaentry *real, struct metaentry *stored, int cmp),
+                 msettings *st)
 {
 	struct metaentry *real, *stored;
 	int key;

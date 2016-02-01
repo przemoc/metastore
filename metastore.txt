@@ -79,10 +79,12 @@ PATHS
        will each be examined. Later invocations should be made using the exact
        same paths to ensure that the stored metadata is interpreted correctly.
 
-AUTHOR
-       Written by David Härdeman <david@hardeman.nu>
+AUTHORS
+       metastore was created by David Härdeman in 2007-2008.  Now it is  main‐
+       tained  by  Przemysław  Pawełczyk.   All  source  code contributors are
+       listed in the AUTHORS file.
 
 
 
 
-                                September 2015                    metastore(1)
+                                 January 2016                     metastore(1)

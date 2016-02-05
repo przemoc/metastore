@@ -56,6 +56,25 @@ Requirements
 - libbsd
 
 
+Download
+--------
+
+You can obtain any released version (tarball and signature) from:
+
+    ftp://ftp.przemoc.net/pub/software/utils/metastore/
+    http://ftp.przemoc.net/pub/software/utils/metastore/
+
+Signer should be the current maintainer, see AUTHORS file.
+
+Alternative you can get it from:
+
+    https://github.com/przemoc/metastore/releases/
+
+If you want to see the latest source code, then git clone following URL:
+
+    https://github.com/przemoc/metastore
+
+
 Building
 --------
 

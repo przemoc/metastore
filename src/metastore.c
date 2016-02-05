@@ -91,7 +91,7 @@ static void
 compare_print(struct metaentry *real, struct metaentry *stored, int cmp)
 {
 	if (!real && !stored) {
-		msg(MSG_ERROR, "%s called with incorrect arguments\n", __FUNCTION__);
+		msg(MSG_ERROR, "%s called with incorrect arguments\n", __func__);
 		return;
 	}
 
@@ -136,8 +136,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 	unsigned i;
 
 	if (!real && !stored) {
-		msg(MSG_ERROR, "%s called with incorrect arguments\n",
-		    __FUNCTION__);
+		msg(MSG_ERROR, "%s called with incorrect arguments\n", __func__);
 		return;
 	}
 

@@ -109,7 +109,7 @@ mentry_find(const char *path, struct metahash *mhash)
 	unsigned key;
 
 	if (!mhash) {
-		msg(MSG_ERROR, "%s called with empty hash table\n", __FUNCTION__);
+		msg(MSG_ERROR, "%s called with empty hash table\n", __func__);
 		return NULL;
 	}
 
@@ -569,7 +569,7 @@ mentry_compare(struct metaentry *left, struct metaentry *right, msettings *st)
 	int retval = DIFF_NONE;
 
 	if (!left || !right) {
-		msg(MSG_ERROR, "%s called with empty list\n", __FUNCTION__);
+		msg(MSG_ERROR, "%s called with empty list\n", __func__);
 		return -1;
 	}
 
@@ -614,7 +614,7 @@ mentries_compare(struct metahash *mhashreal,
 	int key;
 
 	if (!mhashreal || !mhashstored) {
-		msg(MSG_ERROR, "%s called with empty list\n", __FUNCTION__);
+		msg(MSG_ERROR, "%s called with empty list\n", __func__);
 		return;
 	}
 

@@ -91,7 +91,7 @@ insert_entry_pdlist(struct metaentry **list, struct metaentry *entry)
 static void
 compare_print(struct metaentry *real, struct metaentry *stored, int cmp)
 {
-	if (!real && !stored) {
+	if (!real && (!stored || (cmp == DIFF_NONE || cmp & DIFF_ADDED))) {
 		msg(MSG_ERROR, "%s called with incorrect arguments\n", __func__);
 		return;
 	}

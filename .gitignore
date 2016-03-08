@@ -2,6 +2,7 @@ Makefile.dep
 
 /obj/
 *.o
+*.exe
 
 /lib/
 *.so

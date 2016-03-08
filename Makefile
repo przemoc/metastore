@@ -40,6 +40,10 @@ metastore_SRCS := \
  metastore.c \
  utils.c \
 
+ifeq ($(findstring Cygwin,$(UNAME_S)),)
+metastore_SRCS += strmode.c
+endif
+
 metastore_DLIBS := \
 
 metastore_MANS := \
@@ -48,7 +52,9 @@ metastore_MANS := \
 ifeq ($(findstring BSD,$(UNAME_S)),)
 ifneq (DragonFly,$(UNAME_S))
 ifneq (Darwin,$(UNAME_S))
+ifneq ($(findstring Cygwin,$(UNAME_S)),)
 metastore_DLIBS += -lbsd
+endif
 endif
 endif
 endif

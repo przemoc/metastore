@@ -35,13 +35,19 @@
 #include <time.h>
 
 #include <sys/param.h>
-#ifndef BSD
+#if !defined(BSD) && !defined(__CYGWIN__)
 # include <bsd/string.h>
 #endif
 
 #include "metastore.h"
 #include "metaentry.h"
 #include "utils.h"
+
+#if defined(__CYGWIN__)
+#include "strmode.h"
+/* Fixes: warning: implicit declaration of function `realpath' [-Wimplicit-function-declaration] */
+extern char * realpath(const char *__restrict path, char *__restrictresolved_path);
+#endif
 
 /* Free's a metaentry and all its parameters */
 static void

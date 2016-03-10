@@ -23,7 +23,9 @@
 #include <sys/stat.h>
 #include <getopt.h>
 #include <utime.h>
+#ifndef __MINGW32__
 #include <sys/xattr.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -129,12 +131,14 @@ compare_print(struct metaentry *real, struct metaentry *stored, int cmp)
 static void
 compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 {
+	struct utimbuf tbuf;
+#ifndef __MINGW32__
 	struct group *group;
 	struct passwd *owner;
 	gid_t gid = -1;
 	uid_t uid = -1;
-	struct utimbuf tbuf;
 	unsigned i;
+#endif
 
 	if (!real && !stored) {
 		msg(MSG_ERROR, "%s called with incorrect arguments\n", __func__);
@@ -171,6 +175,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 
 	msg(MSG_QUIET, "%s:\tchanging metadata\n", real->path);
 
+#ifndef __MINGW32__
 	while (cmp & (DIFF_OWNER | DIFF_GROUP)) {
 		if (cmp & DIFF_OWNER) {
 			msg(MSG_NORMAL, "%s:\tchanging owner from %s to %s\n",
@@ -203,6 +208,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 		}
 		break;
 	}
+#endif
 
 	if (cmp & DIFF_MODE) {
 		msg(MSG_NORMAL, "%s:\tchanging mode from 0%o to 0%o\n",
@@ -225,6 +231,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 		}
 	}
 
+#ifndef __MINGW32__
 	if (cmp & DIFF_XATTR) {
 		for (i = 0; i < real->xattrs; i++) {
 			/* Any attrs to remove? */
@@ -253,6 +260,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 				    strerror(errno));
 		}
 	}
+#endif
 }
 
 /*

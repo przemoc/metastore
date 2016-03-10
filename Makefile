@@ -40,8 +40,12 @@ metastore_SRCS := \
  metastore.c \
  utils.c \
 
-ifeq ($(findstring Cygwin,$(UNAME_S)),)
-metastore_SRCS += strmode.c
+ifneq ($(findstring CYGWIN,$(UNAME_S)),)
+metastore_SRCS += mingw/strmode.c
+endif
+
+ifneq ($(findstring MINGW32,$(UNAME_S)),)
+metastore_SRCS += mingw/strmode.c mingw/mingw.c mingw/mmap.c
 endif
 
 metastore_DLIBS := \

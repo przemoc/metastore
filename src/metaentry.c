@@ -17,6 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#ifdef __MINGW32__
+#include "mingw/mingw.h"
+#endif
+
+#ifdef __CYGWIN__
+/* Fixes: warning: implicit declaration of function `realpath' [-Wimplicit-function-declaration] */
+#undef __STRICT_ANSI__
+#endif
+
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,10 +33,16 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#ifndef __MINGW32__
 #include <sys/xattr.h>
+#endif
 #include <limits.h>
 #include <dirent.h>
+#ifndef __MINGW32__
 #include <sys/mman.h>
+#else
+#include "mingw/mmap.h"
+#endif
 #include <utime.h>
 #include <fcntl.h>
 #include <stdint.h>
@@ -35,19 +50,19 @@
 #include <time.h>
 
 #include <sys/param.h>
-#if !defined(BSD) && !defined(__CYGWIN__)
+#if !defined(BSD) && !defined(__CYGWIN__) && !defined(__MINGW32__)
 # include <bsd/string.h>
+#endif
+
+#if defined(__CYGWIN__) || defined(__MINGW32__)
+#include "mingw/strmode.h"
 #endif
 
 #include "metastore.h"
 #include "metaentry.h"
 #include "utils.h"
 
-#if defined(__CYGWIN__)
-#include "strmode.h"
-/* Fixes: warning: implicit declaration of function `realpath' [-Wimplicit-function-declaration] */
-extern char * realpath(const char *__restrict path, char *__restrictresolved_path);
-#endif
+#ifndef __MINGW32__
 
 /* Free's a metaentry and all its parameters */
 static void
@@ -73,6 +88,8 @@ mentry_free(struct metaentry *m)
 
 	free(m);
 }
+
+#endif
 
 /* Allocates an empty metahash table */
 static struct metahash *
@@ -190,12 +207,14 @@ mentries_print(const struct metahash *mhash)
 struct metaentry *
 mentry_create(const char *path)
 {
-	ssize_t lsize, vsize;
-	char *list, *attr;
 	struct stat sbuf;
 	struct passwd *pbuf;
 	struct group *gbuf;
+#ifndef __MINGW32__
+	ssize_t lsize, vsize;
+	char *list, *attr;
 	int i;
+#endif
 	struct metaentry *mentry;
 
 	if (lstat(path, &sbuf)) {
@@ -206,30 +225,49 @@ mentry_create(const char *path)
 
 	pbuf = xgetpwuid(sbuf.st_uid);
 	if (!pbuf) {
+#ifndef __MINGW32__
 		msg(MSG_ERROR, "getpwuid failed for %s: uid %i not found\n",
 		    path, (int)sbuf.st_uid);
 		return NULL;
+#endif
 	}
 
 	gbuf = xgetgrgid(sbuf.st_gid);
 	if (!gbuf) {
+#ifndef __MINGW32__
 		msg(MSG_ERROR, "getgrgid failed for %s: gid %i not found\n",
 		    path, (int)sbuf.st_gid);
 		return NULL;
+#endif
 	}
 
 	mentry = mentry_alloc();
 	mentry->path = xstrdup(path);
 	mentry->pathlen = strlen(mentry->path);
-	mentry->owner = xstrdup(pbuf->pw_name);
-	mentry->group = xstrdup(gbuf->gr_name);
+	if (pbuf)	{
+		mentry->owner = xstrdup(pbuf->pw_name);
+	} else {
+		mentry->owner = xstrdup("");
+	}
+	if (gbuf) {
+		mentry->group = xstrdup(gbuf->gr_name);
+	} else {
+		mentry->group = xstrdup("");
+	}
 	mentry->mode = sbuf.st_mode & 0177777;
+#ifndef __MINGW32__
 	mentry->mtime = sbuf.st_mtim.tv_sec;
 	mentry->mtimensec = sbuf.st_mtim.tv_nsec;
+#else
+	mentry->mtime = sbuf.st_mtime;
+	mentry->mtimensec = 0;
+#endif
 
 	/* symlinks have no xattrs */
 	if (S_ISLNK(mentry->mode))
 		return mentry;
+
+#ifndef __MINGW32__
 
 	lsize = listxattr(path, NULL, 0);
 	if (lsize < 0) {
@@ -300,6 +338,7 @@ mentry_create(const char *path)
 	}
 
 	free(list);
+#endif
 	return mentry;
 }
 
@@ -657,13 +696,14 @@ mentries_dump(struct metahash *mhash)
 		for (mentry = mhash->bucket[key]; mentry; mentry = mentry->next) {
 			strmode(mentry->mode, mode);
 			localtime_r(&mentry->mtime, &cal);
-			strftime(date, sizeof(date), "%F %T", &cal);
+			strftime(date, sizeof(date), "%Y-%m-%d %H:%M:%S", &cal);
 			strftime(zone, sizeof(zone), "%z", &cal);
 			printf("%s\t%s\t%s\t%s.%09ld %s\t%s%s\n",
 			       mode,
 			       mentry->owner, mentry->group,
 			       date, mentry->mtimensec, zone,
 			       mentry->path, S_ISDIR(mentry->mode) ? "/" : "");
+#ifndef __MINGW32__
 			for (unsigned i = 0; i < mentry->xattrs; i++) {
 				printf("\t\t\t\t%s%s\t%s=",
 				       mentry->path, S_ISDIR(mentry->mode) ? "/" : "",
@@ -687,6 +727,7 @@ mentries_dump(struct metahash *mhash)
 					printf("\n");
 				}
 			}
+#endif
 		}
 	}
 }

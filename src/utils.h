@@ -20,16 +20,22 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#ifdef __MINGW32__
+#include "mingw/mingw.h"
+#endif
+
 /* For uint64_t */
 #include <stdint.h>
 /* For ssize_t */
 #include <unistd.h>
 /* For FILE */
 #include <stdio.h>
+#ifndef __MINGW32__
 /* For struct passwd */
 #include <pwd.h>
 /* For struct group */
 #include <grp.h>
+#endif
 
 /* Adjusts the verbosity level for msg() */
 void adjust_verbosity(int adj);

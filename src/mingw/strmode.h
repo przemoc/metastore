@@ -28,19 +28,19 @@
  * SUCH DAMAGE.
  */
 
+#if defined(__CYGWIN__) || defined(__MINGW32__)
+#define NO_SYSMODE
+#endif
+
+#ifdef NO_SYSMODE
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
 
 /* XXX mode should be mode_t */
 
-#if defined(__CYGWIN__)
-#undef HAVE_SYSMODE
-#endif
-
-#ifndef HAVE_SYSMODE
-
-void
+extern void
 strmode(int mode, char *p);
 
 #endif

@@ -17,6 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#ifdef __MINGW32__
+#include "mingw/mingw.h"
+#endif
+
 #define _BSD_SOURCE
 #define _DEFAULT_SOURCE
 #include <stdlib.h>
@@ -28,8 +32,10 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
+#ifndef __MINGW32__
 #include <grp.h>
 #include <pwd.h>
+#endif
 
 #include "utils.h"
 

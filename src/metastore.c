@@ -30,11 +30,18 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include "metastore.h"
 #include "settings.h"
 #include "utils.h"
 #include "metaentry.h"
+
+#ifndef __MINGW32__
+#include <pwd.h>
+#else
+#include <Shlobj.h>
+#endif
 
 /* metastore settings */
 static struct metasettings settings = {
@@ -461,23 +468,24 @@ static struct option long_options[] = {
 	{ NULL, 0, NULL, 0 }
 };
 
-/* Main function */
+static int action = 0;
+
+/* Parse options */
 int
-main(int argc, char **argv)
+parse_options(int argc, char **argv)
 {
 	int i, c;
-	struct metahash *real = NULL;
-	struct metahash *stored = NULL;
-	int action = 0;
 
 	/* Parse options */
 	i = 0;
 	while (1) {
 		int option_index = 0;
+		optind = 0; /* See http://man7.org/linux/man-pages/man3/getopt.3.html#NOTES */
 		c = getopt_long(argc, argv, "csadVhvqmeEgf:",
 		                long_options, &option_index);
-		if (c == -1)
+		if (c == -1) {
 			break;
+		}
 		switch (c) {
 		case 'c': /* compare */           action |= ACTION_DIFF;  i++;   break;
 		case 's': /* save */              action |= ACTION_SAVE;  i++;   break;
@@ -497,6 +505,132 @@ main(int argc, char **argv)
 			usage(argv[0], "unknown option");
 		}
 	}
+
+	return i;
+}
+
+/* Parse options in a string */
+int
+parse_string(char *s)
+{
+	char *d;
+	char *p;
+	enum { max_args = 64 };
+	int _argc = 0;
+	char *_argv[max_args];
+
+	if (!s || strlen(s) == 0) {
+		return 0;
+	}
+
+	_argv[_argc++] = "";
+
+	d = xstrdup(s);
+	p = strtok(d, " ");
+	while (p && _argc < max_args - 1)
+	{
+		_argv[_argc++] = p;
+		p = strtok(0, " ");
+	}
+	_argv[_argc] = 0;
+
+	parse_options(_argc, _argv);
+
+	free(d);
+
+	return 0;
+}
+
+/* Parse options in a file */
+int
+parse_file(char *path)
+{
+	FILE *fp;
+	size_t max = 1024;
+	char *p;
+
+	fp = fopen(path, "r");
+
+	if (!fp) {
+		return 0;
+	}
+
+	p = (char *) xmalloc(max);
+
+	fread(p, max, 1, fp);
+
+	fclose(fp);
+
+	if (strlen(p) > 0) {
+		for (unsigned int i = 0; i < strlen(p); ++i) {
+			if (isspace(p[i])) {
+				p[i] = ' ';
+			}
+		}
+
+		parse_string(p);
+	}
+
+	free(p);
+
+	return 0;
+}
+
+/* Get the home directory */
+char *
+get_home_dir()
+{
+	char *homedir = "";
+#ifdef __MINGW32__
+	static WCHAR path[MAX_PATH];
+#endif
+
+	homedir = getenv("HOME");
+	if (strlen(homedir) > 0) {
+		return homedir;
+	}
+
+#ifndef __MINGW32__
+	homedir = getpwuid(getuid())->pw_dir;
+	return homedir;
+#else
+	homedir = getenv("USERPROFILE");
+	if (strlen(homedir) > 0) {
+		return homedir;
+	}
+	if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_PROFILE, NULL, 0, path))) {
+		return (char *) path;
+	}
+#endif
+
+	return "";
+}
+
+/* Main function */
+int
+main(int argc, char **argv)
+{
+	int i = 0;
+	struct metahash *real = NULL;
+	struct metahash *stored = NULL;
+	char *homedir = "";
+	char *dot_metastore = METASTORE_FILENAME;
+	char *path = "";
+
+	homedir = get_home_dir();
+	if (strlen(homedir) > 0) {
+		path = xmalloc(strlen(homedir)+strlen(dot_metastore) + 2);
+    strcpy(path, homedir);
+		strcat(path, "/");
+    strcat(path, dot_metastore);
+		dot_metastore = path;
+	}
+
+	parse_file(dot_metastore);
+
+	parse_string(getenv(METASTORE_ENVVAR));
+
+	i = parse_options(argc, argv);
 
 	/* Make sure only one action is specified */
 	if (i != 1)

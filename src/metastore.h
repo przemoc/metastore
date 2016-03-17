@@ -29,6 +29,12 @@
 /* Default filename */
 #define METAFILE     "./.metadata"
 
+/* Default option filename */
+#define METASTORE_FILENAME ".metastore"
+
+/* environmental variable name */
+#define METASTORE_ENVVAR "METASTORE"
+
 /* Utility defines for the action to take */
 #define ACTION_APPLY 0x01
 #define ACTION_DIFF  0x02

@@ -22,14 +22,27 @@
 
 /* Data structure to hold metastore settings */
 struct metasettings {
-	char *metafile;          /* path to the file containing the metadata */
-	bool do_mtime;           /* should mtimes be corrected? */
-	bool do_emptydirs;       /* should empty dirs be recreated? */
-	bool do_removeemptydirs; /* should new empty dirs be removed? */
-	bool do_git;             /* should .git dirs be processed? */
+	char *metafile;          /**< path to the file containing the metadata */
+	bool do_mtime;           /**< should mtimes be corrected? */
+	bool do_emptydirs;       /**< should empty dirs be recreated? */
+	bool do_removeemptydirs; /**< should new empty dirs be removed? */
+	bool do_git;             /**< should .git dirs be processed? */
+	int  restrict_to_fs;     /**< should processing only be done within this FS? */
+	unsigned long long int device_id;      /**< device id storage if do_one_fs */
 };
 
 /* Convenient typedef for immutable settings */
 typedef const struct metasettings msettings;
+
+
+/**
+ * enum for identifying additional command line arguments without single character [-x] option
+ * respective flags (e.g. settings.restrict_to_fs) will be set to the
+ * corresponding value
+ */
+enum _CommandLineOption {
+  CommandLineOption_None = 0,		/**< option not set */
+  CommandLineOption_RestrictFS,		/**< value for --one-file-system*/
+};
 
 #endif /* SETTINGS_H */

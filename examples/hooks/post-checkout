@@ -19,6 +19,6 @@ if [ ! -e "$MSFILE" ]; then
 fi
 
 exit_on_fail \
-	metastore -a -m -e -E -q -f "$MSFILE"
+	metastore -a -G -m -e -E -q -f "$MSFILE"
 
 exit 0

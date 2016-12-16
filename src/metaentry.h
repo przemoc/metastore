@@ -59,6 +59,10 @@ struct metaentry *mentry_create(const char *path);
 void mentries_recurse_path(const char *opath, struct metahash **mhash,
                            msettings *st);
 
+/* From a list of files (paths), adds respective metadata entries */
+void mentries_from_file_list(char **file_list,
+                             struct metahash **mhash, size_t count);
+
 /* Stores a metaentry list to a file */
 void mentries_tofile(const struct metahash *mhash, const char *path);
 

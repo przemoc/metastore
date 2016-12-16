@@ -30,7 +30,7 @@ fi
 
 echo "Going to apply the following metadata changes" >&2
 
-metastore -c $MSFLAGS -f "$MSFILE" >&2
+metastore -c -G $MSFLAGS -f "$MSFILE" >&2
 
 printf "%s" "Ok to apply? (y/n): " >&2
 read REPLY
@@ -42,6 +42,6 @@ if [ "$REPLY" != "y" ]; then
 fi
 
 exit_on_fail \
-	metastore -a $MSFLAGS -e -E -f "$MSFILE"
+	metastore -a -G $MSFLAGS -e -E -f "$MSFILE"
 
 exit 0

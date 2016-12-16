@@ -28,6 +28,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <git2.h>
+#include <libgen.h>
 
 #include "metastore.h"
 #include "settings.h"
@@ -41,6 +43,7 @@ static struct metasettings settings = {
 	.do_emptydirs = false,
 	.do_removeemptydirs = false,
 	.do_git = false,
+	.git_only = false,
 };
 
 /* Used to create lists of dirs / other files which are missing in the fs */
@@ -429,6 +432,7 @@ usage(const char *arg0, const char *message)
 "  -e, --empty-dirs         Recreate missing empty directories\n"
 "  -E, --remove-empty-dirs  Remove extra empty directories\n"
 "  -g, --git                Do not omit .git directories\n"
+"  -G, --git-only           Only process files tracked by git\n"
 "  -f, --file=FILE          Set metadata file (" METAFILE " by default)\n"
 	    );
 
@@ -449,6 +453,7 @@ static struct option long_options[] = {
 	{ "empty-dirs",        no_argument,       NULL, 'e' },
 	{ "remove-empty-dirs", no_argument,       NULL, 'E' },
 	{ "git",               no_argument,       NULL, 'g' },
+	{ "git-only",          no_argument,       NULL, 'G' },
 	{ "file",              required_argument, NULL, 'f' },
 	{ NULL, 0, NULL, 0 }
 };
@@ -466,7 +471,7 @@ main(int argc, char **argv)
 	i = 0;
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "csadVhvqmeEgf:",
+		c = getopt_long(argc, argv, "csadVhvqmeEgGf:",
 		                long_options, &option_index);
 		if (c == -1)
 			break;
@@ -485,6 +490,7 @@ main(int argc, char **argv)
 			                              break;
 		case 'g': /* git */               settings.do_git = true;        break;
 		case 'f': /* file */              settings.metafile = optarg;    break;
+		case 'G': /* git-only*/	          settings.git_only = true;      break;
 		default:
 			usage(argv[0], "unknown option");
 		}
@@ -522,7 +528,74 @@ main(int argc, char **argv)
 		while (optind < argc)
 			mentries_recurse_path(argv[optind++], &real, &settings);
 	} else if (action != ACTION_DUMP) {
-		mentries_recurse_path(".", &real, &settings);
+		if (settings.git_only) {
+			git_libgit2_init();
+			git_repository *repo = NULL;
+			git_index *idx = NULL;
+			git_repository_open_ext(&repo, ".", 0, NULL);
+			git_repository_index(&idx, repo);
+
+			char *trail = "./";
+			size_t count = git_index_entrycount(idx);
+			char *file_list[count];
+			char *dir_list[20*count]; // temporarily fixed at 20x amount of files
+			size_t dir_count = 0;
+			char *curr_dir;
+			int existing_dir;
+			int first_dir_chk;
+
+			for (size_t i=0; i<count; i++) {
+				const git_index_entry *entry = git_index_get_byindex(idx, i);
+				char *filename = malloc(strlen(entry->path)+3);
+				char *tmpfilename = malloc(strlen(entry->path)+3);
+				strcpy(filename, trail);
+				strcat(filename, entry->path);
+				strcpy(tmpfilename, filename);
+				file_list[i] = filename;
+				curr_dir = dirname(tmpfilename);
+
+				first_dir_chk = 1;
+				while (first_dir_chk || strcmp(curr_dir, ".") != 0) {
+					first_dir_chk = 0;
+					existing_dir = 0;
+					for(size_t j=0; j<dir_count && !existing_dir; j++) {
+						if (strcmp(dir_list[j], curr_dir) == 0) {
+							existing_dir = 1;
+						}
+					}
+					// copy curr_dir so we can find its dirname
+					char *new_dir = malloc(strlen(curr_dir));
+					strcpy(new_dir, curr_dir);
+
+					if (!existing_dir)
+						dir_list[dir_count++] = curr_dir;
+					else
+						free(curr_dir);
+					
+					curr_dir = dirname(new_dir);
+				}
+			}
+
+			git_repository_free(repo);
+			git_libgit2_shutdown();
+
+			char *full_list[count+dir_count];
+			for (size_t i=0; i<count; i++) {
+				full_list[i] = file_list[i];
+			}
+			for (size_t i=0; i<dir_count; i++) {
+				full_list[count+i] = dir_list[i];
+			}
+
+			mentries_from_file_list(full_list, &real, count+dir_count);
+
+			for (size_t i=0; i<count+dir_count; i++) {
+				free(full_list[i]);
+			}
+		}
+		else {
+			mentries_recurse_path(".", &real, &settings);
+		}
 	}
 
 	if (!real && (action != ACTION_DUMP || optind < argc)) {

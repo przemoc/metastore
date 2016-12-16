@@ -53,6 +53,9 @@ endif
 endif
 endif
 
+# libgit2 support
+metastore_DLIBS += -lgit2
+
 PVER := $(PROJ_DIR)Makefile.ver
 
 SDEP := Makefile.dep

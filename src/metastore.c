@@ -564,7 +564,7 @@ main(int argc, char **argv)
 						}
 					}
 					// copy curr_dir so we can find its dirname
-					char *new_dir = malloc(strlen(curr_dir));
+					char *new_dir = malloc(strlen(curr_dir)+1);
 					strcpy(new_dir, curr_dir);
 
 					if (!existing_dir)

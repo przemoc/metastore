@@ -500,7 +500,7 @@ mentries_fromfile(struct metahash **mhash, const char *path)
 		}
 
 		mentry->xattr_names   = xmalloc(mentry->xattrs * sizeof(char *));
-		mentry->xattr_lvalues = xmalloc(mentry->xattrs * sizeof(int));
+		mentry->xattr_lvalues = xmalloc(mentry->xattrs * sizeof(ssize_t));
 		mentry->xattr_values  = xmalloc(mentry->xattrs * sizeof(char *));
 
 		for (i = 0; i < mentry->xattrs; i++) {

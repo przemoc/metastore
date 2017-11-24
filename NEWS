@@ -1,4 +1,13 @@
-v1.1.0                                                        2016-02-01
+Latest stuff
+------------------------------------------------------------------------
+
+ * BUGFIX: Reading metadata file with extended attributes entries led
+           to corruption of metadata represented in memory on 64-bit
+           platforms, so applying could led to corruption of metadata
+           on disk too.  Bug discovered thanks to Uros Juvan.
+
+
+v1.1.0                                                      (2016-02-01)
 ------------------------------------------------------------------------
 
  * BUGFIX: Applying metadata with extended attribute having null byte

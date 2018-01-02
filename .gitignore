@@ -10,8 +10,6 @@ Makefile.dep
 
 /bin/
 
-/debian/
-
 *~
 *.patch
 

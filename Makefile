@@ -116,6 +116,16 @@ MANDIR := ${DATAROOTDIR}/man
  uninstall uninstall-bins uninstall-libs uninstall-includes \
  clean distclean \
  dep \
+ printvars \
+
+### Debug
+printvars:
+	@$(foreach V, $(sort $(.VARIABLES)), \
+	   $(if $(filter-out environment% default automatic, $(origin $V)), \
+	        $(warning $V = $(value $V)) \
+	        $(if $(findstring ^$(value $V)%,^$($V)%),,$(warning $V == $($V))) \
+	   ) \
+	)
 
 ### Install tools
 INSTALL := install

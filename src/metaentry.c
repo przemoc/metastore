@@ -43,6 +43,10 @@
 #include "metaentry.h"
 #include "utils.h"
 
+#ifndef PATH_MAX
+# define PATH_MAX 4096
+#endif
+
 /* Free's a metaentry and all its parameters */
 static void
 mentry_free(struct metaentry *m)

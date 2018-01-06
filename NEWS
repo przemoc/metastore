@@ -4,6 +4,19 @@ Latest stuff
  * Support building on systems with undefined PATH_MAX, e.g. GNU Hurd.
    Simple, but not ideal solution yet - PATH_MAX is assumed to be 4096.
 
+ * Stop assuming that LDFLAGS has flags only for the linker (LD).
+   It used to be true long time ago, when these flags were passed
+   directly to ld.  Nowadays (for quite many years already) it happens
+   differently and ld is almost never called directly during build,
+   because it's the compiler that is used for performing linking stage
+   (so called CCLD, practically almost always the same as CC).
+
+   The build process was already using CCLD (defaulting to CC's value),
+   but was prefixing all unprefixed flags in LDFLAGS with -Wl, prefix,
+   making it impossible to pass non-linker flags via LDFLAGS to CCLD.
+   No more!  Now it's assumed that LDFLAGS are meant to be passed to
+   the compiler, so linker flags require explicit -Wl, prefix.
+
 
 v1.1.1a                                                     (2018-01-02)
 ------------------------------------------------------------------------

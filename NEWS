@@ -1,3 +1,10 @@
+Latest stuff
+------------------------------------------------------------------------
+
+ * Support building on systems with undefined PATH_MAX, e.g. GNU Hurd.
+   Simple, but not ideal solution yet - PATH_MAX is assumed to be 4096.
+
+
 v1.1.1a                                                     (2018-01-02)
 ------------------------------------------------------------------------
 

@@ -120,7 +120,7 @@ xfwrite(const void *ptr, size_t size, FILE *stream)
 void
 write_int(uint64_t value, size_t len, FILE *to)
 {
-	char buf[len];
+	char buf[sizeof(value)];
 	size_t i;
 
 	for (i = 0; i < len; i++)

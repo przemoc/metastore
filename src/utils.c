@@ -116,7 +116,7 @@ xfwrite(const void *ptr, size_t size, FILE *stream)
 	}
 }
 
-/* Writes an int to a file, using len bytes, in bigendian order */
+/* Writes an int to a file, using len bytes, in little-endian order */
 void
 write_int(uint64_t value, size_t len, FILE *to)
 {
@@ -142,7 +142,7 @@ write_string(const char *string, FILE *to)
 	xfwrite(string, strlen(string) + 1, to);
 }
 
-/* Reads an int from a file, using len bytes, in bigendian order */
+/* Reads an int from a file, using len bytes, in little-endian order */
 uint64_t
 read_int(char **from, size_t len, const char *max)
 {

@@ -106,7 +106,7 @@ mentry_alloc(void)
 }
 
 /* Does a bisect search for the closest match in a metaentry list */
-struct metaentry *
+static struct metaentry *
 mentry_find(const char *path, struct metahash *mhash)
 {
 	struct metaentry *base;

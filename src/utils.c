@@ -191,7 +191,7 @@ static struct group *gtable = NULL;
 
 /* Initial setup of the gid table */
 static void
-create_group_table()
+create_group_table(void)
 {
 	struct group *tmp;
 	int count, index;
@@ -249,7 +249,7 @@ static struct passwd *ptable = NULL;
 
 /* Initial setup of the passwd table */
 static void
-create_passwd_table()
+create_passwd_table(void)
 {
 	struct passwd *tmp;
 	int count, index;

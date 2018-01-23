@@ -74,7 +74,7 @@ mentry_free(struct metaentry *m)
 
 /* Allocates an empty metahash table */
 static struct metahash *
-mhash_alloc()
+mhash_alloc(void)
 {
 	struct metahash *mhash;
 	mhash = xmalloc(sizeof(struct metahash));
@@ -97,7 +97,7 @@ hash(const char *str)
 
 /* Allocates an empty metaentry */
 static struct metaentry *
-mentry_alloc()
+mentry_alloc(void)
 {
 	struct metaentry *mentry;
 	mentry = xmalloc(sizeof(struct metaentry));

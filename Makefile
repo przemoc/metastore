@@ -44,7 +44,7 @@ ifneq ($(findstring CYGWIN,$(UNAME_S)),)
 metastore_SRCS += mingw/strmode.c
 endif
 
-ifneq ($(findstring MINGW32,$(UNAME_S)),)
+ifneq ($(findstring MINGW,$(UNAME_S)),)
 metastore_SRCS += mingw/strmode.c mingw/mingw.c mingw/mmap.c
 endif
 
@@ -126,6 +126,16 @@ MANDIR := ${DATAROOTDIR}/man
  uninstall uninstall-bins uninstall-libs uninstall-includes \
  clean distclean \
  dep \
+ printvars \
+
+### Debug
+printvars:
+	@$(foreach V, $(sort $(.VARIABLES)), \
+	   $(if $(filter-out environment% default automatic, $(origin $V)), \
+	        $(warning $V = $(value $V)) \
+	        $(if $(findstring ^$(value $V)%,^$($V)%),,$(warning $V == $($V))) \
+	   ) \
+	)
 
 ### Install tools
 INSTALL := install
@@ -159,9 +169,6 @@ endif
 CC_PARAMS  = $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
 CXX_PARAMS = $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
 
-### Helpers
-comma := ,
-
 ### Final flags
 ifneq ($(origin CFLAGS),environment)
 CFLAGS   = $(OPTIONAL_FLAGS)
@@ -173,13 +180,6 @@ override CFLAGS   += $(MUSTHAVE_FLAGS) $(MUSTHAVE_CFLAGS) \
                      $(if $(INCS_DIR),-I$(INCS_DIR),) -I$(SRCS_DIR)
 override CXXFLAGS += $(MUSTHAVE_FLAGS) $(MUSTHAVE_CXXFLAGS) \
 	                 $(if $(INCS_DIR),-I$(INCS_DIR),) -I$(SRCS_DIR)
-override LDFLAGS  := $(subst -Wl$(comma),,$(LDFLAGS))
-ifneq ($(origin CCLDFLAGS),environment)
-CCLDFLAGS  := $(addprefix -Wl$(comma),$(LDFLAGS))
-endif
-ifneq ($(origin CXXLDFLAGS),environment)
-CXXLDFLAGS := $(addprefix -Wl$(comma),$(LDFLAGS))
-endif
 
 vpath %.h   $(SRCS_DIR) $(INCS_DIR)
 vpath %.c   $(SRCS_DIR)
@@ -212,7 +212,7 @@ ifeq ($$($(1)_COMP),CC)
 else
 	@echo "        CXXLD   $$@"
 endif
-	$$(HIDE)$$($$($(1)_COMP)LD) $$($$($(1)_COMP)LDFLAGS) $$(TARGET_ARCH) \
+	$$(HIDE)$$($$($(1)_COMP)LD) $$(LDFLAGS) $$(TARGET_ARCH) \
 	  -o $$@ $$(filter %.o,$$^) \
 	  -Wl,-Bstatic $$($(1)_SLIBS) -Wl,-Bdynamic $$($(1)_DLIBS)
 
@@ -256,7 +256,7 @@ ifeq ($$($(1)_COMP),CC)
 else
 	@echo "        CXXLD   $$@"
 endif
-	$$(HIDE)$$($$($(1)_COMP)LD) $$($$($(1)_COMP)LDFLAGS) $$(TARGET_ARCH) \
+	$$(HIDE)$$($$($(1)_COMP)LD) $$(LDFLAGS) $$(TARGET_ARCH) \
 	  -shared -Wl,-soname,$$($(1)_SONAME) \
 	  -o $$@ $$(filter %.o,$$^) \
 	  -Wl,-Bstatic $$($(1)_SLIBS) -Wl,-Bdynamic $$($(1)_DLIBS)

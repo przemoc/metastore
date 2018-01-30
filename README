@@ -66,7 +66,7 @@ You can obtain any released version (tarball and signature) from:
 
 Signer should be the current maintainer, see AUTHORS file.
 
-Alternative you can get it from:
+Alternatively, you can get it from:
 
     https://github.com/przemoc/metastore/releases/
 
@@ -111,8 +111,8 @@ You can always change them, e.g.:
 DESTDIR is also supported.
 
 
-Reporing issues
----------------
+Reporting issues
+----------------
 
 Please use the issue tracker provided by GitHub to send bug reports
 or feature requests.

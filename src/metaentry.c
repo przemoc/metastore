@@ -62,6 +62,10 @@
 #include "metaentry.h"
 #include "utils.h"
 
+#ifndef PATH_MAX
+# define PATH_MAX 4096
+#endif
+
 #ifndef __MINGW32__
 
 /* Free's a metaentry and all its parameters */
@@ -93,7 +97,7 @@ mentry_free(struct metaentry *m)
 
 /* Allocates an empty metahash table */
 static struct metahash *
-mhash_alloc()
+mhash_alloc(void)
 {
 	struct metahash *mhash;
 	mhash = xmalloc(sizeof(struct metahash));
@@ -116,7 +120,7 @@ hash(const char *str)
 
 /* Allocates an empty metaentry */
 static struct metaentry *
-mentry_alloc()
+mentry_alloc(void)
 {
 	struct metaentry *mentry;
 	mentry = xmalloc(sizeof(struct metaentry));
@@ -125,7 +129,7 @@ mentry_alloc()
 }
 
 /* Does a bisect search for the closest match in a metaentry list */
-struct metaentry *
+static struct metaentry *
 mentry_find(const char *path, struct metahash *mhash)
 {
 	struct metaentry *base;
@@ -545,7 +549,7 @@ mentries_fromfile(struct metahash **mhash, const char *path)
 		}
 
 		mentry->xattr_names   = xmalloc(mentry->xattrs * sizeof(char *));
-		mentry->xattr_lvalues = xmalloc(mentry->xattrs * sizeof(int));
+		mentry->xattr_lvalues = xmalloc(mentry->xattrs * sizeof(ssize_t));
 		mentry->xattr_values  = xmalloc(mentry->xattrs * sizeof(char *));
 
 		for (i = 0; i < mentry->xattrs; i++) {

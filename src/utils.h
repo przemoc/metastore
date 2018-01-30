@@ -63,7 +63,7 @@ void binary_print(const char *s, ssize_t len);
 /* Writes data to a file or exits on failure */
 void xfwrite(const void *ptr, size_t size, FILE *stream);
 
-/* Writes an int to a file, using len bytes, in bigendian order */
+/* Writes an int to a file, using len bytes, in little-endian order */
 void write_int(uint64_t value, size_t len, FILE *to);
 
 /* Writes a binary string to a file */
@@ -72,7 +72,7 @@ void write_binary_string(const char *string, size_t len, FILE *to);
 /* Writes a normal C string to a file */
 void write_string(const char *string, FILE *to);
 
-/* Reads an int from a file, using len bytes, in bigendian order */
+/* Reads an int from a file, using len bytes, in little-endian order */
 uint64_t read_int(char **from, size_t len, const char *max);
 
 /* Reads a binary string from a file */

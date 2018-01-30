@@ -8,7 +8,7 @@ Following sections explain internals of metastore file (.metadata).
 
     CSTRING     = NUL-terminated binary string
     BSTRING(N)  = binary string of length N
-    INT(N)      = N byte integer in big endian byte order
+    INT(N)      = N byte integer in little-endian byte order
 
 
 ### File layout

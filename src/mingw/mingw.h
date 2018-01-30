@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <wchar.h>
+#include <direct.h>
 
 typedef int uid_t;
 typedef int gid_t;

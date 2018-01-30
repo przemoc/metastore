@@ -480,7 +480,8 @@ parse_options(int argc, char **argv)
 	i = 0;
 	while (1) {
 		int option_index = 0;
-		optind = 0; /* See http://man7.org/linux/man-pages/man3/getopt.3.html#NOTES */
+    // infinite loop in cygwin:
+		// optind = 0; /* See http://man7.org/linux/man-pages/man3/getopt.3.html#NOTES */
 		c = getopt_long(argc, argv, "csadVhvqmeEgf:",
 		                long_options, &option_index);
 		if (c == -1) {

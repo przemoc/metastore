@@ -1,4 +1,40 @@
-v1.1.0                                                        2016-02-01
+v1.1.2                                                      (2018-01-06)
+------------------------------------------------------------------------
+
+ * Support building on systems with undefined PATH_MAX, e.g. GNU Hurd.
+   Simple, but not ideal solution yet - PATH_MAX is assumed to be 4096.
+
+ * Stop assuming that LDFLAGS has flags only for the linker (LD).
+   It used to be true long time ago, when these flags were passed
+   directly to ld.  Nowadays (for quite many years already) it happens
+   differently and ld is almost never called directly during build,
+   because it's the compiler that is used for performing linking stage
+   (so called CCLD, practically almost always the same as CC).
+
+   The build process was already using CCLD (defaulting to CC's value),
+   but was prefixing all unprefixed flags in LDFLAGS with -Wl, prefix,
+   making it impossible to pass non-linker flags via LDFLAGS to CCLD.
+   No more!  Now it's assumed that LDFLAGS are meant to be passed to
+   the compiler, so linker flags require explicit -Wl, prefix.
+
+
+v1.1.1a                                                     (2018-01-02)
+------------------------------------------------------------------------
+
+ * Non-code-related change requested by debian package maintainer.
+   Other distributions are unaffected by it.
+
+
+v1.1.1                                                      (2017-12-04)
+------------------------------------------------------------------------
+
+ * BUGFIX: Reading metadata file with extended attributes entries led
+           to corruption of metadata represented in memory on 64-bit
+           platforms, so applying could led to corruption of metadata
+           on disk too.  Bug discovered thanks to Uros Juvan.
+
+
+v1.1.0                                                      (2016-02-01)
 ------------------------------------------------------------------------
 
  * BUGFIX: Applying metadata with extended attribute having null byte

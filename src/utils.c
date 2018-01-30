@@ -122,11 +122,11 @@ xfwrite(const void *ptr, size_t size, FILE *stream)
 	}
 }
 
-/* Writes an int to a file, using len bytes, in bigendian order */
+/* Writes an int to a file, using len bytes, in little-endian order */
 void
 write_int(uint64_t value, size_t len, FILE *to)
 {
-	char buf[len];
+	char buf[sizeof(value)];
 	size_t i;
 
 	for (i = 0; i < len; i++)
@@ -148,7 +148,7 @@ write_string(const char *string, FILE *to)
 	xfwrite(string, strlen(string) + 1, to);
 }
 
-/* Reads an int from a file, using len bytes, in bigendian order */
+/* Reads an int from a file, using len bytes, in little-endian order */
 uint64_t
 read_int(char **from, size_t len, const char *max)
 {
@@ -197,7 +197,7 @@ static struct group *gtable = NULL;
 
 /* Initial setup of the gid table */
 static void
-create_group_table()
+create_group_table(void)
 {
 	struct group *tmp;
 	int count, index;
@@ -255,7 +255,7 @@ static struct passwd *ptable = NULL;
 
 /* Initial setup of the passwd table */
 static void
-create_passwd_table()
+create_passwd_table(void)
 {
 	struct passwd *tmp;
 	int count, index;

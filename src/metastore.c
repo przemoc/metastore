@@ -476,12 +476,14 @@ parse_options(int argc, char **argv)
 {
 	int i, c;
 
+#if defined(__CYGWIN__) || defined(__MINGW32__)
+  optind = 0; /* See http://man7.org/linux/man-pages/man3/getopt.3.html#NOTES */
+#endif
+
 	/* Parse options */
 	i = 0;
 	while (1) {
 		int option_index = 0;
-    // infinite loop in cygwin:
-		// optind = 0; /* See http://man7.org/linux/man-pages/man3/getopt.3.html#NOTES */
 		c = getopt_long(argc, argv, "csadVhvqmeEgf:",
 		                long_options, &option_index);
 		if (c == -1) {
@@ -547,18 +549,48 @@ int
 parse_file(char *path)
 {
 	FILE *fp;
-	size_t max = 1024;
+	size_t max = 65536;
 	char *p;
+  struct stat stat_buf;
+  int rc;
+  size_t bytes;
+
+  rc = stat(path, &stat_buf);
+  if (rc != 0) {
+    return 0;
+  }
+
+  bytes = (size_t) stat_buf.st_size;
+
+  if (bytes == 0) {
+    return 0;
+  }
 
 	fp = fopen(path, "r");
 
 	if (!fp) {
-		return 0;
-	}
+    msg(MSG_CRITICAL, "Failed to open %s\n", path);
+    exit(EXIT_FAILURE);
+  }
 
+  if (bytes > max) {
+    msg(MSG_ERROR, "Reading only the first %d bytes of %s\n", max, path);
+    bytes = max;
+  }
+
+  p = (char *) xmalloc(bytes);
+  if (!p) {
+    msg(MSG_CRITICAL, "Failed to allocate %d bytes reading %s\n", bytes, path);
+    exit(EXIT_FAILURE);
+  }
+ 
 	p = (char *) xmalloc(max);
-
-	fread(p, max, 1, fp);
+  rc = fread(p, 1, bytes, fp);
+ 
+  if ((size_t) rc < bytes) {
+    msg(MSG_CRITICAL, "Failed to read %s (expected %d bytes, read %d bytes)\n", path, bytes, rc);
+    exit(EXIT_FAILURE);
+  }
 
 	fclose(fp);
 
@@ -587,7 +619,7 @@ get_home_dir()
 #endif
 
 	homedir = getenv("HOME");
-	if (strlen(homedir) > 0) {
+	if (homedir && strlen(homedir) > 0) {
 		return homedir;
 	}
 
@@ -596,7 +628,7 @@ get_home_dir()
 	return homedir;
 #else
 	homedir = getenv("USERPROFILE");
-	if (strlen(homedir) > 0) {
+	if (homedir && strlen(homedir) > 0) {
 		return homedir;
 	}
 	if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_PROFILE, NULL, 0, path))) {

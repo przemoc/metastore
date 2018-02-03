@@ -2,7 +2,9 @@
 /*
  * Main functions of the program.
  *
- * Copyright (C) 2007 David Härdeman <david@hardeman.nu>
+ * Copyright (C) 2007-2008 David Härdeman <david@hardeman.nu>
+ * Copyright (C) 2012-2016 Przemyslaw Pawelczyk <przemoc@gmail.com>
+ * Copyright (C) 2014-2015 Dan Fandrich <dan@coneharvesters.com>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the

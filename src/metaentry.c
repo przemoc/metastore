@@ -25,7 +25,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#ifndef __OpenBSD__
 #include <sys/xattr.h>
+#endif
 #include <limits.h>
 #include <dirent.h>
 #include <sys/mman.h>
@@ -49,6 +51,7 @@
 #endif
 
 /* Free's a metaentry and all its parameters */
+#ifndef __OpenBSD__
 static void
 mentry_free(struct metaentry *m)
 {
@@ -72,6 +75,7 @@ mentry_free(struct metaentry *m)
 
 	free(m);
 }
+#endif
 
 /* Allocates an empty metahash table */
 static struct metahash *
@@ -189,13 +193,15 @@ mentries_print(const struct metahash *mhash)
 struct metaentry *
 mentry_create(const char *path)
 {
-	ssize_t lsize, vsize;
-	char *list, *attr;
 	struct stat sbuf;
 	struct passwd *pbuf;
 	struct group *gbuf;
-	int i;
 	struct metaentry *mentry;
+#ifndef __OpenBSD__
+	ssize_t lsize, vsize;
+	char *list, *attr;
+	int i;
+#endif
 
 	if (lstat(path, &sbuf)) {
 		msg(MSG_ERROR, "lstat failed for %s: %s\n",
@@ -230,6 +236,7 @@ mentry_create(const char *path)
 	if (S_ISLNK(mentry->mode))
 		return mentry;
 
+#ifndef __OpenBSD__
 	lsize = listxattr(path, NULL, 0);
 	if (lsize < 0) {
 		/* Perhaps the FS doesn't support xattrs? */
@@ -299,6 +306,7 @@ mentry_create(const char *path)
 	}
 
 	free(list);
+#endif
 	return mentry;
 }
 
@@ -663,6 +671,7 @@ mentries_dump(struct metahash *mhash)
 			       mentry->owner, mentry->group,
 			       date, mentry->mtimensec, zone,
 			       mentry->path, S_ISDIR(mentry->mode) ? "/" : "");
+#ifndef __OpenBSD__
 			for (unsigned i = 0; i < mentry->xattrs; i++) {
 				printf("\t\t\t\t%s%s\t%s=",
 				       mentry->path, S_ISDIR(mentry->mode) ? "/" : "",
@@ -686,6 +695,7 @@ mentries_dump(struct metahash *mhash)
 					printf("\n");
 				}
 			}
+#endif
 		}
 	}
 }

@@ -25,7 +25,9 @@
 #include <sys/stat.h>
 #include <getopt.h>
 #include <utime.h>
+#ifndef __OpenBSD__
 #include <sys/xattr.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -136,7 +138,9 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 	gid_t gid = -1;
 	uid_t uid = -1;
 	struct utimbuf tbuf;
+#ifndef __OpenBSD__
 	unsigned i;
+#endif
 
 	if (!real && !stored) {
 		msg(MSG_ERROR, "%s called with incorrect arguments\n", __func__);
@@ -227,6 +231,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 		}
 	}
 
+#ifndef __OpenBSD__
 	if (cmp & DIFF_XATTR) {
 		for (i = 0; i < real->xattrs; i++) {
 			/* Any attrs to remove? */
@@ -255,6 +260,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 				    strerror(errno));
 		}
 	}
+#endif
 }
 
 /*

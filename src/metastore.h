@@ -42,4 +42,12 @@
 #define ACTIONS_READING 0x07
 #define ACTIONS_WRITING 0x70
 
+/* Possible build defines */
+#ifndef   NO_XATTR
+# define  NO_XATTR 0
+#endif /* NO_XATTR */
+
+/* Messages */
+#define NO_XATTR_MSG "no XATTR support"
+
 #endif /* METASTORE_H */

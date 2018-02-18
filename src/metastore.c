@@ -399,7 +399,7 @@ fixup_newemptydirs(void)
 static void
 version(void)
 {
-	msg(MSG_QUIET, "metastore %s\n", METASTORE_VER);
+	printf("metastore %s\n", METASTORE_VER);
 
 	exit(EXIT_SUCCESS);
 }

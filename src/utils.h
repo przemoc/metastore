@@ -40,8 +40,9 @@ void adjust_verbosity(int adj);
 #define MSG_DEBUG     1
 #define MSG_QUIET    -1
 /* Verbosity levels using stderr */
-#define MSG_ERROR    -2
-#define MSG_CRITICAL -3
+#define MSG_WARNING  -2
+#define MSG_ERROR    -3
+#define MSG_CRITICAL -4
 
 /* Prints messages to console according to the current verbosity */
 int msg(int level, const char *fmt, ...);

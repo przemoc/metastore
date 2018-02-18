@@ -3,6 +3,7 @@ Latest stuff
 
  * Support building with no extended attributes support when NO_XATTR
    macro is predefined to non-0 value (e.g. put -DNO_XATTR in CFLAGS).
+   You can achieve it by passing NO_XATTR=1 to make invocation.
 
 
 v1.1.2                                                      (2018-01-06)

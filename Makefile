@@ -53,6 +53,12 @@ endif
 endif
 endif
 
+ifneq (,$(NO_XATTR))
+ifneq (0,$(NO_XATTR))
+ADDITIONAL_FLAGS += -DNO_XATTR
+endif
+endif
+
 PVER := $(PROJ_DIR)Makefile.ver
 
 SDEP := Makefile.dep
@@ -90,6 +96,7 @@ MUSTHAVE_FLAGS    := \
  -D_FILE_OFFSET_BITS=64 \
  -Wall -Wextra -pedantic \
  -g \
+ $(ADDITIONAL_FLAGS) \
 
 MUSTHAVE_CFLAGS   := -std=c99
 MUSTHAVE_CXXFLAGS := -std=c++11

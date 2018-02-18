@@ -408,12 +408,15 @@ version(void)
 static void
 usage(const char *arg0, const char *message)
 {
-	if (message)
-		msg(MSG_CRITICAL, "%s: %s\n\n", arg0, message);
-	msg(MSG_CRITICAL,
+	if (message) {
+		msg(MSG_CRITICAL, "%s: %s\n", arg0, message);
+		msg(MSG_ERROR, "\n");
+	}
+
+	msg(message ? MSG_ERROR : MSG_QUIET,
 "Usage: %s ACTION [OPTION...] [PATH...]\n",
 	    arg0);
-	msg(MSG_CRITICAL,
+	msg(message ? MSG_ERROR : MSG_QUIET,
 "\n"
 "Where ACTION is one of:\n"
 "  -c, --compare            Show differences between stored and real metadata\n"

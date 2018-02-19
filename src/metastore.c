@@ -26,7 +26,7 @@
 #include <getopt.h>
 #include <utime.h>
 
-#if !defined(NO_XATTR) || !NO_XATTR
+#if !defined(NO_XATTR) || !(NO_XATTR+0)
 # include <sys/xattr.h>
 #endif /* !NO_XATTR */
 
@@ -127,7 +127,7 @@ compare_print(struct metaentry *real, struct metaentry *stored, int cmp)
 		msg(MSG_QUIET, "xattr ");
 	msg(MSG_QUIET, "\n");
 
-	if (NO_XATTR && cmp & DIFF_XATTR) {
+	if ((NO_XATTR+0) && cmp & DIFF_XATTR) {
 		msg(MSG_WARNING, "%s:\txattr difference may be bogus: %s\n",
 		    real->path, NO_XATTR_MSG);
 	}
@@ -244,11 +244,11 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 
 			msg(MSG_NORMAL, "%s:\tremoving xattr %s\n",
 			    real->path, real->xattr_names[i]);
-			if (NO_XATTR) {
+			if ((NO_XATTR+0)) {
 				msg(MSG_WARNING, "%s:\tremoving xattr %s failed: %s\n",
 				    real->path, real->xattr_names[i], NO_XATTR_MSG);
 			}
-#if !defined(NO_XATTR) || !NO_XATTR
+#if !defined(NO_XATTR) || !(NO_XATTR+0)
 			else
 			if (lremovexattr(real->path, real->xattr_names[i]))
 				msg(MSG_DEBUG, "\tlremovexattr failed: %s\n",
@@ -263,11 +263,11 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 
 			msg(MSG_NORMAL, "%s:\tadding xattr %s\n",
 			    stored->path, stored->xattr_names[i]);
-			if (NO_XATTR) {
+			if ((NO_XATTR+0)) {
 				msg(MSG_WARNING, "%s:\tadding xattr %s failed: %s\n",
 				    stored->path, stored->xattr_names[i], NO_XATTR_MSG);
 			}
-#if !defined(NO_XATTR) || !NO_XATTR
+#if !defined(NO_XATTR) || !(NO_XATTR+0)
 			else
 			if (lsetxattr(stored->path, stored->xattr_names[i],
 			              stored->xattr_values[i],
@@ -424,7 +424,7 @@ version(void)
 {
 	printf("metastore %s\n", METASTORE_VER);
 
-	if (NO_XATTR) {
+	if ((NO_XATTR+0)) {
 		printf("Built with %s.\n", NO_XATTR_MSG);
 	}
 

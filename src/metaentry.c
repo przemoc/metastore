@@ -26,7 +26,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#if !defined(NO_XATTR) || !NO_XATTR
+#if !defined(NO_XATTR) || !(NO_XATTR+0)
 # include <sys/xattr.h>
 #endif /* !NO_XATTR */
 
@@ -52,7 +52,7 @@
 # define PATH_MAX 4096
 #endif
 
-#if !defined(NO_XATTR) || !NO_XATTR
+#if !defined(NO_XATTR) || !(NO_XATTR+0)
 /* Free's a metaentry and all its parameters */
 static void
 mentry_free(struct metaentry *m)
@@ -195,14 +195,14 @@ mentries_print(const struct metahash *mhash)
 struct metaentry *
 mentry_create(const char *path)
 {
-#if !defined(NO_XATTR) || !NO_XATTR
+#if !defined(NO_XATTR) || !(NO_XATTR+0)
 	ssize_t lsize, vsize;
 	char *list, *attr;
 #endif /* !NO_XATTR */
 	struct stat sbuf;
 	struct passwd *pbuf;
 	struct group *gbuf;
-#if !defined(NO_XATTR) || !NO_XATTR
+#if !defined(NO_XATTR) || !(NO_XATTR+0)
 	int i;
 #endif /* !NO_XATTR */
 	struct metaentry *mentry;
@@ -240,7 +240,7 @@ mentry_create(const char *path)
 	if (S_ISLNK(mentry->mode))
 		return mentry;
 
-#if !defined(NO_XATTR) || !NO_XATTR
+#if !defined(NO_XATTR) || !(NO_XATTR+0)
 	lsize = listxattr(path, NULL, 0);
 	if (lsize < 0) {
 		/* Perhaps the FS doesn't support xattrs? */

@@ -365,7 +365,7 @@ fixup_emptydirs(void)
 
 		new = mentry_create(cur->path);
 		if (!new) {
-			msg(MSG_QUIET, "Failed to get metadata for %s\n");
+			msg(MSG_QUIET, "Failed to get metadata for %s\n", cur->path);
 			continue;
 		}
 

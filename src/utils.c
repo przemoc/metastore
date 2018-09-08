@@ -74,7 +74,7 @@ xmalloc(size_t size)
 {
         void *result = malloc(size);
         if (!result) {
-                msg(MSG_CRITICAL, "Failed to malloc %zi bytes\n", size);
+                msg(MSG_CRITICAL, "Failed to malloc %zu bytes\n", size);
                 exit(EXIT_FAILURE);
         }
         return result;
@@ -86,7 +86,7 @@ xstrdup(const char *s)
 {
 	char *result = strdup(s);
 	if (!result) {
-		msg(MSG_CRITICAL, "Failed to strdup %zi bytes\n", strlen(s));
+		msg(MSG_CRITICAL, "Failed to strdup %zu bytes\n", strlen(s));
 		exit(EXIT_FAILURE);
 	}
 	return result;

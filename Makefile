@@ -209,9 +209,15 @@ ifeq ($$($(1)_COMP),CC)
 else
 	@echo "        CXXLD   $$@"
 endif
+
+ifneq (Darwin,$(UNAME_S))
 	$$(HIDE)$$($$($(1)_COMP)LD) $$(LDFLAGS) $$(TARGET_ARCH) \
 	  -o $$@ $$(filter %.o,$$^) \
 	  -Wl,-Bstatic $$($(1)_SLIBS) -Wl,-Bdynamic $$($(1)_DLIBS)
+else
+	$$(HIDE)$$($$($(1)_COMP)LD) $$(LDFLAGS) $$(TARGET_ARCH) \
+	  -o $$@ $$(filter %.o,$$^)
+endif
 
 $(1): $$(BINS_DIR)$(1)
 .PHONY: $(1)
@@ -253,10 +259,17 @@ ifeq ($$($(1)_COMP),CC)
 else
 	@echo "        CXXLD   $$@"
 endif
+
+ifneq (Darwin,$(UNAME_S))
 	$$(HIDE)$$($$($(1)_COMP)LD) $$(LDFLAGS) $$(TARGET_ARCH) \
 	  -shared -Wl,-soname,$$($(1)_SONAME) \
 	  -o $$@ $$(filter %.o,$$^) \
 	  -Wl,-Bstatic $$($(1)_SLIBS) -Wl,-Bdynamic $$($(1)_DLIBS)
+else
+	$$(HIDE)$$($$($(1)_COMP)LD) $$(LDFLAGS) $$(TARGET_ARCH) \
+	  -shared -Wl,-soname,$$($(1)_SONAME) \
+	  -o $$@ $$(filter %.o,$$^)
+endif
 
 $$(LIBS_DIR)$$($(1)_ARFILE): \
  $$(addprefix $$(OBJS_DIR),$$($(1)_OBJS)) $$(SDEP) | $$(LIBS_DIR)

@@ -233,15 +233,24 @@ mentry_create(const char *path)
 	mentry->owner = xstrdup(pbuf->pw_name);
 	mentry->group = xstrdup(gbuf->gr_name);
 	mentry->mode = sbuf.st_mode & 0177777;
+	#ifdef __MACH__
+	mentry->mtime = sbuf.st_mtimespec.tv_sec;
+	mentry->mtimensec = sbuf.st_mtimespec.tv_nsec;
+	#else
 	mentry->mtime = sbuf.st_mtim.tv_sec;
 	mentry->mtimensec = sbuf.st_mtim.tv_nsec;
+	#endif
 
 	/* symlinks have no xattrs */
 	if (S_ISLNK(mentry->mode))
 		return mentry;
 
 #if !defined(NO_XATTR) || !(NO_XATTR+0)
+	#ifdef __MACH__
+	lsize = listxattr(path, NULL, 0, XATTR_NOFOLLOW);
+	#else
 	lsize = listxattr(path, NULL, 0);
+	#endif
 	if (lsize < 0) {
 		/* Perhaps the FS doesn't support xattrs? */
 		if (errno == ENOTSUP)
@@ -253,7 +262,11 @@ mentry_create(const char *path)
 	}
 
 	list = xmalloc(lsize);
+	#ifdef __MACH__
+	lsize = listxattr(path, list, lsize, XATTR_NOFOLLOW);
+	#else
 	lsize = listxattr(path, list, lsize);
+	#endif
 	if (lsize < 0) {
 		msg(MSG_ERROR, "listxattr failed for %s: %s\n",
 		    path, strerror(errno));
@@ -283,8 +296,11 @@ mentry_create(const char *path)
 
 		mentry->xattr_names[i] = xstrdup(attr);
 		mentry->xattr_values[i] = NULL;
-
+		#ifdef __MACH__
+		vsize = getxattr(path, attr, NULL, 0, 0, XATTR_NOFOLLOW);
+		#else
 		vsize = getxattr(path, attr, NULL, 0);
+		#endif
 		if (vsize < 0) {
 			msg(MSG_ERROR, "getxattr failed for %s: %s\n",
 			    path, strerror(errno));
@@ -297,7 +313,11 @@ mentry_create(const char *path)
 		mentry->xattr_lvalues[i] = vsize;
 		mentry->xattr_values[i] = xmalloc(vsize);
 
+		#ifdef __MACH__
+		vsize = getxattr(path, attr, mentry->xattr_values[i], vsize, 0, XATTR_NOFOLLOW);
+		#else
 		vsize = getxattr(path, attr, mentry->xattr_values[i], vsize);
+		#endif
 		if (vsize < 0) {
 			msg(MSG_ERROR, "getxattr failed for %s: %s\n",
 			    path, strerror(errno));

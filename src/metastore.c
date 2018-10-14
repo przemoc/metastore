@@ -250,9 +250,15 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 			}
 #if !defined(NO_XATTR) || !(NO_XATTR+0)
 			else
+            #ifdef __MACH__
+			if (removexattr(real->path, real->xattr_names[i], XATTR_NOFOLLOW))
+				msg(MSG_DEBUG, "\tremovexattr failed: %s\n",
+				    strerror(errno));
+            #else
 			if (lremovexattr(real->path, real->xattr_names[i]))
 				msg(MSG_DEBUG, "\tlremovexattr failed: %s\n",
 				    strerror(errno));
+			#endif
 #endif /* !NO_XATTR */
 		}
 
@@ -269,12 +275,21 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 			}
 #if !defined(NO_XATTR) || !(NO_XATTR+0)
 			else
+            #ifdef __MACH__
+            if (setxattr(stored->path, stored->xattr_names[i],
+                         stored->xattr_values[i],
+                         stored->xattr_lvalues[i], 0, XATTR_CREATE | XATTR_NOFOLLOW)
+			   )
+  			    msg(MSG_DEBUG, "\tsetxattr failed: %s\n",
+                    strerror(errno));
+            #else
 			if (lsetxattr(stored->path, stored->xattr_names[i],
 			              stored->xattr_values[i],
 			              stored->xattr_lvalues[i], XATTR_CREATE)
 			   )
 				msg(MSG_DEBUG, "\tlsetxattr failed: %s\n",
 				    strerror(errno));
+            #endif
 #endif /* !NO_XATTR */
 		}
 	}

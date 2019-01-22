@@ -193,7 +193,7 @@ mentries_print(const struct metahash *mhash)
 
 /* Creates a metaentry for the file/dir/etc at path */
 struct metaentry *
-mentry_create(const char *path)
+mentry_create(const char *path, msettings *st)
 {
 #if !defined(NO_XATTR) || !(NO_XATTR+0)
 	ssize_t lsize, vsize;
@@ -214,15 +214,17 @@ mentry_create(const char *path)
 	}
 
 	pbuf = xgetpwuid(sbuf.st_uid);
-	if (!pbuf) {
-		msg(MSG_ERROR, "getpwuid failed for %s: uid %i not found\n",
+	if (!pbuf && !st->owner) {
+		msg(MSG_ERROR, "getpwuid failed for %s: uid %i not found, "
+		    "you can use `--owner' (`-O') to manually specify it.\n",
 		    path, (int)sbuf.st_uid);
 		return NULL;
 	}
 
 	gbuf = xgetgrgid(sbuf.st_gid);
-	if (!gbuf) {
-		msg(MSG_ERROR, "getgrgid failed for %s: gid %i not found\n",
+	if (!gbuf && !st->group) {
+		msg(MSG_ERROR, "getgrgid failed for %s: gid %i not found, "
+		    "you can use `--group' (`-G') to manually specify it.\n",
 		    path, (int)sbuf.st_gid);
 		return NULL;
 	}
@@ -230,8 +232,8 @@ mentry_create(const char *path)
 	mentry = mentry_alloc();
 	mentry->path = xstrdup(path);
 	mentry->pathlen = strlen(mentry->path);
-	mentry->owner = xstrdup(pbuf->pw_name);
-	mentry->group = xstrdup(gbuf->gr_name);
+	mentry->owner = pbuf ? xstrdup(pbuf->pw_name) : st->owner;
+	mentry->group = gbuf ? xstrdup(gbuf->gr_name) : st->group;
 	mentry->mode = sbuf.st_mode & 0177777;
 	mentry->mtime = sbuf.st_mtim.tv_sec;
 	mentry->mtimensec = sbuf.st_mtim.tv_nsec;
@@ -359,7 +361,7 @@ mentries_recurse(const char *path, struct metahash *mhash, msettings *st)
 		return;
 	}
 
-	mentry = mentry_create(path);
+	mentry = mentry_create(path, st);
 	if (!mentry)
 		return;
 

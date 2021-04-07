@@ -185,7 +185,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 	while (cmp & (DIFF_OWNER | DIFF_GROUP)) {
 		if (cmp & DIFF_OWNER) {
 			msg(MSG_NORMAL, "%s:\tchanging owner from %s to %s\n",
-			    real->path, real->group, stored->group);
+			    real->path, real->owner, stored->owner);
 			owner = xgetpwnam(stored->owner);
 			if (!owner) {
 				msg(MSG_DEBUG, "\tgetpwnam failed: %s\n",

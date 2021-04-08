@@ -54,7 +54,7 @@ struct metahash {
 };
 
 /* Create a metaentry for the file/dir/etc at path */
-struct metaentry *mentry_create(const char *path);
+struct metaentry *mentry_create(const char *path, msettings *st);
 
 /* Recurses opath and adds metadata entries to the metaentry list */
 void mentries_recurse_path(const char *opath, struct metahash **mhash,

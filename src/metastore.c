@@ -43,6 +43,8 @@
 /* metastore settings */
 static struct metasettings settings = {
 	.metafile = METAFILE,
+	.owner = NULL,
+	.group = NULL,
 	.do_mtime = false,
 	.do_emptydirs = false,
 	.do_removeemptydirs = false,
@@ -285,7 +287,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
  * recreating them.
  */
 static void
-fixup_emptydirs(void)
+fixup_emptydirs(msettings *st)
 {
 	struct metaentry *entry;
 	struct metaentry *cur;
@@ -363,7 +365,7 @@ fixup_emptydirs(void)
 		}
 		msg(MSG_QUIET, "ok\n");
 
-		new = mentry_create(cur->path);
+		new = mentry_create(cur->path, st);
 		if (!new) {
 			msg(MSG_QUIET, "Failed to get metadata for %s\n", cur->path);
 			continue;
@@ -462,6 +464,8 @@ usage(const char *arg0, const char *message)
 "  -E, --remove-empty-dirs  Remove extra empty directories\n"
 "  -g, --git                Do not omit .git directories\n"
 "  -f, --file=FILE          Set metadata file (" METAFILE " by default)\n"
+"  -O, --owner              Owner to use when internal check fails.\n"
+"  -G, --group              Group to use when internal check fails.\n"
 	    );
 
 	exit(message ? EXIT_FAILURE : EXIT_SUCCESS);
@@ -482,6 +486,8 @@ static struct option long_options[] = {
 	{ "remove-empty-dirs", no_argument,       NULL, 'E' },
 	{ "git",               no_argument,       NULL, 'g' },
 	{ "file",              required_argument, NULL, 'f' },
+	{ "owner",             required_argument, NULL, 'O' },
+	{ "group",             required_argument, NULL, 'G' },
 	{ NULL, 0, NULL, 0 }
 };
 
@@ -498,7 +504,7 @@ main(int argc, char **argv)
 	i = 0;
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "csadVhvqmeEgf:",
+		c = getopt_long(argc, argv, "csadVhvqmeEgf:O:G:",
 		                long_options, &option_index);
 		if (c == -1)
 			break;
@@ -517,10 +523,13 @@ main(int argc, char **argv)
 			                              break;
 		case 'g': /* git */               settings.do_git = true;        break;
 		case 'f': /* file */              settings.metafile = optarg;    break;
+		case 'O': /* owner */             settings.owner = optarg;       break;
+		case 'G': /* group */             settings.group = optarg;       break;
 		default:
 			usage(argv[0], "unknown option");
 		}
 	}
+
 
 	/* Make sure only one action is specified */
 	if (i != 1)
@@ -573,7 +582,7 @@ main(int argc, char **argv)
 	case ACTION_APPLY:
 		mentries_compare(real, stored, compare_fix, &settings);
 		if (settings.do_emptydirs)
-			fixup_emptydirs();
+			fixup_emptydirs(&settings);
 		if (settings.do_removeemptydirs)
 			fixup_newemptydirs();
 		break;

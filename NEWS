@@ -5,6 +5,8 @@ Latest stuff
            working directory was the root directory (/).
            Bug discovered thanks to Jürgen Bubeck.
 
+ * BUGFIX: "changing owner" message showed group instead of owner.
+
  * Support building with no extended attributes support when NO_XATTR
    macro is predefined to non-0 value (e.g. put -DNO_XATTR in CFLAGS).
    You can achieve it by passing NO_XATTR=1 to make invocation.

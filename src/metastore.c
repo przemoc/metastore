@@ -24,7 +24,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <getopt.h>
-#include <utime.h>
+#include <fcntl.h>
 
 #if !defined(NO_XATTR) || !(NO_XATTR+0)
 # include <sys/xattr.h>
@@ -144,7 +144,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 	struct passwd *owner;
 	gid_t gid = -1;
 	uid_t uid = -1;
-	struct utimbuf tbuf;
+	struct timespec times[2];
 	unsigned i;
 
 	if (!real && !stored) {
@@ -222,16 +222,14 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 			msg(MSG_DEBUG, "\tchmod failed: %s\n", strerror(errno));
 	}
 
-	/* FIXME: Use utimensat here, or even better - lutimensat */
-	if ((cmp & DIFF_MTIME) && S_ISLNK(real->mode)) {
-		msg(MSG_NORMAL, "%s:\tsymlink, not changing mtime\n", real->path);
-	} else if (cmp & DIFF_MTIME) {
-		msg(MSG_NORMAL, "%s:\tchanging mtime from %ld to %ld\n",
-		    real->path, real->mtime, stored->mtime);
-		tbuf.actime = stored->mtime;
-		tbuf.modtime = stored->mtime;
-		if (utime(real->path, &tbuf)) {
-			msg(MSG_DEBUG, "\tutime failed: %s\n", strerror(errno));
+	if (cmp & DIFF_MTIME) {
+		msg(MSG_NORMAL, "%s:\tchanging mtime from %ld.%09d to %ld.%09d\n",
+		    real->path, real->mtime, real->mtimensec, stored->mtime, stored->mtimensec);
+		times[0].tv_nsec = UTIME_OMIT;        // atime (last access time)
+		times[1].tv_sec  = stored->mtime;     // mtime (last modification time)
+		times[1].tv_nsec = stored->mtimensec;
+		if (utimensat(AT_FDCWD, real->path, times, AT_SYMLINK_NOFOLLOW)) {
+			msg(MSG_DEBUG, "\tutimensat failed: %s\n", strerror(errno));
 			return;
 		}
 	}

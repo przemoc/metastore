@@ -7,6 +7,13 @@ Latest stuff
 
  * BUGFIX: "changing owner" message showed group instead of owner.
 
+ * BUGFIX: Applying mtime was not including nanoseconds.
+           Bug discovered thanks to Björn Haßler.
+
+ * BUGFIX: Applying mtime was needlessly changing atime.
+
+ * BUGFIX: Applying mtime was not working on symlinks.
+
  * Support building with no extended attributes support when NO_XATTR
    macro is predefined to non-0 value (e.g. put -DNO_XATTR in CFLAGS).
    You can achieve it by passing NO_XATTR=1 to make invocation.

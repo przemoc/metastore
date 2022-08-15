@@ -223,7 +223,7 @@ compare_fix(struct metaentry *real, struct metaentry *stored, int cmp)
 	}
 
 	if (cmp & DIFF_MTIME) {
-		msg(MSG_NORMAL, "%s:\tchanging mtime from %ld.%09d to %ld.%09d\n",
+		msg(MSG_NORMAL, "%s:\tchanging mtime from %ld.%09ld to %ld.%09ld\n",
 		    real->path, real->mtime, real->mtimensec, stored->mtime, stored->mtimensec);
 		times[0].tv_nsec = UTIME_OMIT;        // atime (last access time)
 		times[1].tv_sec  = stored->mtime;     // mtime (last modification time)

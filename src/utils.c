@@ -157,7 +157,7 @@ read_int(char **from, size_t len, const char *max)
 	}
 
 	for (i = 0; i < len; i++)
-		result += (((*from)[i] & 0xff) << (8 * i));
+		result += (((uint64_t)(*from)[i] & 0xff) << (8 * i));
 	*from += len;
 	return result;
 }
